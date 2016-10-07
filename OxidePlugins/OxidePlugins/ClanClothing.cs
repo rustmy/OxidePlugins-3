@@ -44,6 +44,9 @@ namespace Oxide.Plugins
             permission.RegisterPermission(UsePermission, this);
         }
 
+        /// <summary>
+        /// As the config version changed update with default values
+        /// </summary>
         private void LoadVersionConfig()
         {
             _pluginConfig = Config.ReadObject<PluginConfig>();
@@ -112,7 +115,7 @@ namespace Oxide.Plugins
                     ["AddCommand"] = "cc_add",
                     ["RemoveCommand"] = "cc_remove"
                 },
-                ConfigVersion = "1.0.0"
+                ConfigVersion = Version.ToString()
             };
         }
 
@@ -252,9 +255,17 @@ namespace Oxide.Plugins
             PrintToChat(player, $"{_pluginConfig.Prefix} {Lang("Remove", player.UserIDString)}");
         }
 
+        /// <summary>
+        /// Chat Command for play to check how much Clan Clothing costs
+        /// </summary>
+        /// <param name="player"></param>
+        /// <param name="command"></param>
+        /// <param name="args"></param>
         private void CheckCostChatCommand(BasePlayer player, string command, string[] args)
         {
-            string message = _pluginConfig.Prefix + "\n";
+            if (!CheckPermission(player, UsePermission, true)) return; //Player does not have permission
+
+            string message = _pluginConfig.Prefix + "\n"; //Put the plugin prefix at the begining
             if (_pluginConfig.UseCost) //Use cost is true
             {
                 if (_pluginConfig.UseServerRewards) //Use server rewards is true
@@ -277,9 +288,10 @@ namespace Oxide.Plugins
                     }
                 }
 
+                //Puts whether the player can afford the clan clothing
                 message += CanPlayerAfford(player) ? Lang("CanAfford", player.UserIDString) : Lang("CanNotAfford", player.UserIDString);
             }
-            else //Use cost if false
+            else //Use cost is false clan clothing cost nothing
             {
                 message += Lang("NoCost", player.UserIDString);
             }
@@ -288,34 +300,41 @@ namespace Oxide.Plugins
             PrintToChat(player, $"{_pluginConfig.Prefix} {Lang("HowToClaim", player.UserIDString, _pluginConfig.Commands["ClaimCommand"])}");
         }
 
+        /// <summary>
+        /// Player command to see their clans clothing
+        /// If a skin is used will show the skin name
+        /// </summary>
+        /// <param name="player"></param>
+        /// <param name="command"></param>
+        /// <param name="args"></param>
         private void ViewClanClothingChatCommand(BasePlayer player, string command, string[] args)
         {
-            if (!CheckPermission(player, UsePermission, true)) return;
+            if (!CheckPermission(player, UsePermission, true)) return; //Player does not have permission
 
             string playerClanTag = GetPlayerClanTag(player);
             if (playerClanTag == null) return; //Failed to get Clan Tag for player
 
-            if(_storedData.ClanClothing[playerClanTag] == null)
+            if(_storedData.ClanClothing[playerClanTag] == null) //Players clan has not setup clan clothing
             {
                 PrintToChat(player, $"{_pluginConfig.Prefix} {Lang("NotAvaliable", player.UserIDString)}");
                 return;
             }
 
+            //Prepare the message to the player to display their clans clothing
             string message = _pluginConfig.Prefix + "\n";
             foreach(ClothingItem clothingItem in _storedData.ClanClothing[playerClanTag])
             {
-                ItemDefinition item = ItemManager.FindItemDefinition(clothingItem.ItemId);
+                ItemDefinition item = ItemManager.FindItemDefinition(clothingItem.ItemId); //Information about the clothing item
 
-                if (clothingItem.SkinId == 0)
+                if (clothingItem.SkinId == 0) //No skin is set
                 {
                     message += $"   {item.displayName.translated}\n";
                 }
-                else
+                else //skin is set
                 {
-                    var skins = ItemSkinDirectory.ForItem(item);
-                    foreach(var skin in skins)
+                    foreach(var skin in ItemSkinDirectory.ForItem(item)) //Loop over all the skins for the item
                     {
-                        if(skin.id == clothingItem.SkinId)
+                        if(skin.id == clothingItem.SkinId) //If the skin id's match add the skin display name to the message
                         {
                             message += $"   {skin.invItem?.displayName.translated}\n";
                             break;
@@ -330,7 +349,6 @@ namespace Oxide.Plugins
         #endregion
 
         #region Can Afford & Take Items and Points
-
         private bool CanPlayerAfford(BasePlayer player)
         {
             if (!_pluginConfig.UseCost) return true; //Use cost is false
@@ -459,6 +477,7 @@ namespace Oxide.Plugins
         {
             JObject playerClanData = Clans?.Call<JObject>("GetClan", playerClanTag); //Gets the players Clan Information
             if (playerClanData == null) return false;
+
             ulong playerClanOwnerId;
             if (!ulong.TryParse(playerClanData["owner"].ToString(), out playerClanOwnerId)) return false; //If it failed to parse the owner to a ulong
 

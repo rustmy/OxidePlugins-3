@@ -175,6 +175,7 @@ namespace Oxide.Plugins
             _playerSurveyDataUiPage.Remove(player.userID);
             CuiHelper.DestroyUi(player, SurveyContainerName);
             CuiHelper.DestroyUi(player, GiveToContainerName);
+            CuiHelper.DestroyUi(player, MouseBugFixContainerName);
         }
 
         // ReSharper disable once UnusedMember.Local
@@ -404,8 +405,9 @@ namespace Oxide.Plugins
         #endregion
 
         #region UI
-        private const String SurveyContainerName = "SurveyInfo_SurveyContainer";
-        private const String GiveToContainerName = "SurveyInfo_GiveToContainer";
+        private const string SurveyContainerName = "SurveyInfo_SurveyContainer";
+        private const string GiveToContainerName = "SurveyInfo_GiveToContainer";
+        private const string MouseBugFixContainerName = "SurveyInfo_KeepMouseFromReseting";
 
         #region Survey Data UI
         //////////////////////////////////////////////////////////////////////////////////////
@@ -429,12 +431,14 @@ namespace Oxide.Plugins
         private void InitializeDataUi(BasePlayer player)
         {
             CuiElementContainer container = SurveyInfoUI.CreateElementContainer(SurveyContainerName, _pluginConfig.UiColors.SurveyDataContainer, _pluginConfig.SurveyUiConfig.SurveyDataContainerMin, _pluginConfig.SurveyUiConfig.SurveyDataContainerMax);
+            CuiElementContainer mouseBugFixContainer = SurveyInfoUI.CreateElementContainer(MouseBugFixContainerName, "0 0 0 0", "0 0", "1 1");
 
             CreateSurveyDataUiHeader(ref container, player);
             CreateSurveyDataUi(ref container, player);
 
             CuiHelper.DestroyUi(player, GiveToContainerName);
             CuiHelper.DestroyUi(player, SurveyContainerName);
+            CuiHelper.AddUi(player, mouseBugFixContainer);
             CuiHelper.AddUi(player, container);
         }
 
@@ -554,9 +558,6 @@ namespace Oxide.Plugins
             bool showPrevPageButton = playerStartIndex != 0;
             bool showNextPageButton = playerEndIndex != activePlayerList.Count;
 
-            Puts("CreatePlayerListUi");
-            Puts($"Page start: {playerStartIndex} Page end: {playerEndIndex} Player count:{activePlayerList.Count}");
-
             for (int playerIndex = playerStartIndex; playerIndex < playerEndIndex; playerIndex++)
             {
                 string yMin = (conf.PlayerButtonStartPositionYMin - (row * conf.PlayerButtonYSpacing)).ToString();
@@ -564,17 +565,10 @@ namespace Oxide.Plugins
                 string xMin = (conf.PlayerButtonStartPositionXMin + (col * conf.PlayerXSpacing)).ToString();
                 string xMax = (conf.PlayerButtonStartPositionXMax + (col * conf.PlayerXSpacing)).ToString();
 
-                Puts(activePlayerList[playerIndex].displayName);
-                Puts($"xMin: {xMin} yMin: {yMin} xMax: {xMax} yMax: {yMax}");
-                Puts($"Row: {row} Col: {col}");
-                Puts("--------------------------------");
-
                 SurveyInfoUI.CreateButton(ref container, GiveToContainerName, _pluginConfig.UiColors.ButtonPlayers, activePlayerList[playerIndex].displayName.ToString(), conf.GiveToPlayersTextSize, xMin + " " + yMin, xMax + " " + yMax, "si.sigiveto " + activePlayerList[playerIndex].userID + " " + recordId);
 
-                col = ++col % conf.GiveToPlayersPerRow;
-
-                if (playerIndex != 0 && col == 0) row++;
-
+                col = ++col % conf.GiveToPlayersPerRow; //increment col
+                if (playerIndex != 0 && col == 0) row++; //increment row each time col == 0 and it's not the first player
             }
 
             if (showPrevPageButton)
@@ -633,6 +627,7 @@ namespace Oxide.Plugins
             if (player == null) return;
             CuiHelper.DestroyUi(player, SurveyContainerName);
             CuiHelper.DestroyUi(player, GiveToContainerName);
+            CuiHelper.DestroyUi(player, MouseBugFixContainerName);
             _playerSurveyDataUiPage.Remove(player.userID);
             _playerGiveToUiPage.Remove(player.userID);
         }
