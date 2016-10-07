@@ -47,7 +47,6 @@ namespace Oxide.Plugins
             permission.RegisterPermission(_usePermission, this);
 
             LoadLang();
-            RemoveOutdatedEntries();
 
             //Assigned so it can be destoryed at unload. Repeats max integer times
             _saveTimer = timer.Repeat(_pluginConfig.SaveIntervalInSeconds, int.MaxValue, () =>
@@ -84,42 +83,6 @@ namespace Oxide.Plugins
                 ["Frags"] = "Frags",
                 ["Survey"] = "Survey"
             }, this);
-        }
-
-        //////////////////////////////////////////////////////////////////////////////////////
-        /// <summary>
-        /// Remove any entry that is past it's time set in the config
-        /// </summary>
-        /// //////////////////////////////////////////////////////////////////////////////////////
-        private void RemoveOutdatedEntries()
-        {
-            DateTime periodMaxLimit = DateTime.UtcNow - TimeSpan.FromDays(_pluginConfig.DaysToKeepRecord);
-            //ICollection<int> keys = _storedData.SurveyInfo.Keys;
-            //int count = 0;
-            //foreach (int key in keys)
-            //{
-            //    if (_storedData.SurveyInfo[key].ThrownDateTime < periodMaxLimit)
-            //    {
-            //        _storedData.SurveyInfo.Remove(key);
-            //        count++;
-            //    }
-            //}
-
-            //if (count > 0)
-            //{
-            //    PrintWarning($"{count} outdated entries removed");
-            //}
-
-            foreach (var playerData in _storedData.SurveyInfo)
-            {
-                foreach (KeyValuePair<int, SurveyData> item in playerData.Value)
-                {
-                    if (item.Value.ThrownDateTime < periodMaxLimit)
-                    {
-                        _storedData.SurveyInfo[playerData.Key].Remove(item.Key);
-                    }
-                }
-            }
         }
 
         #region Gather Manager Setup
@@ -877,12 +840,10 @@ namespace Oxide.Plugins
             public Location Location { get; set; }
             public float Score { get; set; } //Score for the survey charge
             public Hash<int, SurveyItem> Items { get; } //Hash of all the items from the survey charge
-            public DateTime ThrownDateTime { get; } //When the survey charge was thrown
 
             public SurveyData(int surveyId)
             {
                 SurveyId = surveyId;
-                ThrownDateTime = DateTime.UtcNow;
                 Items = new Hash<int, SurveyItem>();
             }
 
@@ -1036,9 +997,8 @@ namespace Oxide.Plugins
         {
             #region Class Fields
             public string Prefix = "[<color=yellow>SurveyInfo</color>]";
-            public float DaysToKeepRecord = 7.0f;
-            public float SaveIntervalInSeconds = 300f;
-            public float SurveyIdDisplayLengthInSeconds = 300f;
+            public float SaveIntervalInSeconds = 600f;
+            public float SurveyIdDisplayLengthInSeconds = 150f;
             public bool UsePermission = false;
             public UIColors UiColors = new UIColors();
             public SurveyDataUIConfig SurveyUiConfig = new SurveyDataUIConfig();
