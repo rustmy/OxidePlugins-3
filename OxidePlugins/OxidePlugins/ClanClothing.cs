@@ -36,6 +36,7 @@ namespace Oxide.Plugins
 
             //Add the chat commands from the config
             cmd.AddChatCommand(_pluginConfig.Commands["CheckCost"], this, CheckCostChatCommand);
+            cmd.AddChatCommand(_pluginConfig.Commands["ViewClanClothing"], this, ViewClanClothingChatCommand);
             cmd.AddChatCommand(_pluginConfig.Commands["ClaimCommand"], this, RedeemChatCommand);
             cmd.AddChatCommand(_pluginConfig.Commands["AddCommand"], this, AddChatCommand);
             cmd.AddChatCommand(_pluginConfig.Commands["RemoveCommand"], this, RemoveChatCommand);
@@ -78,12 +79,13 @@ namespace Oxide.Plugins
 
         protected override void LoadDefaultConfig()
         {
-            Config.WriteObject(new PluginConfig());
+            Config.WriteObject(DefaultConfig(), true);
         }
 
         // ReSharper disable once UnusedMember.Local
         private PluginConfig DefaultConfig()
         {
+            PrintWarning("Loading Default Config");
             return new PluginConfig
             {
                 ExcludedItems = new List<string> { "metal.facemask", "metal.plate.torso", "roadsign.jacket", "roadsign.kilt" },
@@ -105,6 +107,7 @@ namespace Oxide.Plugins
                 Commands = new Hash<string, string>
                 {
                     ["CheckCost"] = "cc",
+                    ["ViewClanClothing"] = "cc_view",
                     ["ClaimCommand"] = "cc_claim",
                     ["AddCommand"] = "cc_add",
                     ["RemoveCommand"] = "cc_remove"
@@ -177,8 +180,6 @@ namespace Oxide.Plugins
             string playerClanTag = GetPlayerClanTag(player);
             if (playerClanTag == null) return; //Failed to get Clan Tag for player
 
-            if (!CanPlayerAfford(player)) return; //Player can't afford the clan clothing    
-
             List<ClothingItem> itemsToGive = _storedData.ClanClothing[playerClanTag]; //Get's the Clothing for the Players Clan
 
             if (itemsToGive == null || itemsToGive.Count == 0) //No clan clothing is configured or contains no items
@@ -187,6 +188,7 @@ namespace Oxide.Plugins
                 return;
             }
 
+            if (!CanPlayerAfford(player)) return; //Player can't afford the clan clothing    
             if (!TakeCostFromPlayer(player)) return; //Failed to apply the cost to the player
 
             foreach (ClothingItem item in itemsToGive) //Give all the items to the player
@@ -284,6 +286,46 @@ namespace Oxide.Plugins
 
             PrintToChat(player, message);
             PrintToChat(player, $"{_pluginConfig.Prefix} {Lang("HowToClaim", player.UserIDString, _pluginConfig.Commands["ClaimCommand"])}");
+        }
+
+        private void ViewClanClothingChatCommand(BasePlayer player, string command, string[] args)
+        {
+            if (!CheckPermission(player, UsePermission, true)) return;
+
+            string playerClanTag = GetPlayerClanTag(player);
+            if (playerClanTag == null) return; //Failed to get Clan Tag for player
+
+            if(_storedData.ClanClothing[playerClanTag] == null)
+            {
+                PrintToChat(player, $"{_pluginConfig.Prefix} {Lang("NotAvaliable", player.UserIDString)}");
+                return;
+            }
+
+            string message = _pluginConfig.Prefix + "\n";
+            foreach(ClothingItem clothingItem in _storedData.ClanClothing[playerClanTag])
+            {
+                ItemDefinition item = ItemManager.FindItemDefinition(clothingItem.ItemId);
+
+                if (clothingItem.SkinId == 0)
+                {
+                    message += $"   {item.displayName.translated}\n";
+                }
+                else
+                {
+                    var skins = ItemSkinDirectory.ForItem(item);
+                    foreach(var skin in skins)
+                    {
+                        if(skin.id == clothingItem.SkinId)
+                        {
+                            message += $"   {skin.invItem?.displayName.translated}\n";
+                            break;
+                        }
+                    }
+                }
+            }
+
+            PrintToChat(player, message);
+            Puts(message);
         }
 
         #endregion
