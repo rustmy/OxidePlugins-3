@@ -336,7 +336,7 @@ namespace Oxide.Plugins
                     {
                         if(skin.id == clothingItem.SkinId) //If the skin id's match add the skin display name to the message
                         {
-                            message += $"   {skin.invItem?.displayName.translated}\n";
+                            message += $"   {skin.invItem.displayName.translated}\n";
                             break;
                         }
                     }
@@ -575,5 +575,13 @@ namespace Oxide.Plugins
             }
         }
         #endregion
+
+        private void SendHelpText(BasePlayer player)
+        {
+            PrintToChat(player, @"<color=yellow>/cc</color> - Check if you can afford clan clothing\n
+                                <color=yellow>/cc_claim</color> - Claim your clans clothing\n
+                                <color=yellow>/cc_add</color> - Allows the clan owner to set their current clothing as the clan clothing\n
+                                <color=yellow>/cc_remove</color> - Allows the clan owner to remove their current clan clothing");
+        }
     }
 }
