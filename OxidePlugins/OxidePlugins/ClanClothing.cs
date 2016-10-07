@@ -325,7 +325,6 @@ namespace Oxide.Plugins
             }
 
             PrintToChat(player, message);
-            Puts(message);
         }
 
         #endregion
