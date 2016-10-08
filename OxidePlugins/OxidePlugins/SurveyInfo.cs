@@ -198,6 +198,7 @@ namespace Oxide.Plugins
             {
                 CuiHelper.DestroyUi(player, SurveyContainerName);
                 CuiHelper.DestroyUi(player, GiveToContainerName);
+                CuiHelper.DestroyUi(player, MouseBugFixContainerName);
             }
         }
 
@@ -550,12 +551,15 @@ namespace Oxide.Plugins
         {
             List<BasePlayer> activePlayerList = BasePlayer.activePlayerList;
             GiveToUIConfig conf = _pluginConfig.GiveToUiConfig; //Provide easy access to the GiveToUIConfig
-            int playerStartIndex = _playerSurveyDataUiPage[player.userID] * conf.GiveToPlayersPerPage;
+            int playerStartIndex = _playerGiveToUiPage[player.userID] * conf.GiveToPlayersPerPage;
             int playerEndIndex = activePlayerList.Count >= playerStartIndex + conf.GiveToPlayersPerPage ? playerStartIndex + conf.GiveToPlayersPerPage : activePlayerList.Count;
             int row = 0;
             int col = 0;
             bool showPrevPageButton = playerStartIndex != 0;
             bool showNextPageButton = playerEndIndex != activePlayerList.Count;
+
+            //Puts("CreateSurveyDataUi");
+            //Puts($"Start Index:{playerStartIndex} End Index:{playerEndIndex} Player Count:{activePlayerList.Count}");
 
             for (int playerIndex = playerStartIndex; playerIndex < playerEndIndex; playerIndex++)
             {
