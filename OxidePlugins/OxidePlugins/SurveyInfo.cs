@@ -1009,7 +1009,6 @@ namespace Oxide.Plugins
         #region UI Class
         // ReSharper disable once InconsistentNaming
         // ReSharper disable once ClassNeverInstantiated.Local
-        // TODO:  Added FadeOut - Need updated Oxide References
         //////////////////////////////////////////////////////////////////////////////////////
         /// <summary>
         /// @credit to k1lly0u - code from ServerRewards
@@ -1025,9 +1024,10 @@ namespace Oxide.Plugins
                     {
                         new CuiPanel
                         {
-                            Image = {Color = color, FadeIn = .4f},
+                            Image = {Color = color, FadeIn = .25f},
                             RectTransform = {AnchorMin = aMin, AnchorMax = aMax},
-                            CursorEnabled = true
+                            CursorEnabled = true,
+                            FadeOut = .25f
                         },
                         new CuiElement().Parent = "Hud",
                         panelName
@@ -1039,8 +1039,9 @@ namespace Oxide.Plugins
             {
                 container.Add(new CuiLabel
                 {
-                    Text = { Color = color, FontSize = size, Align = align, Text = text, FadeIn = .4f},
-                    RectTransform = { AnchorMin = aMin, AnchorMax = aMax }
+                    Text = { Color = color, FontSize = size, Align = align, Text = text, FadeIn = .25f},
+                    RectTransform = { AnchorMin = aMin, AnchorMax = aMax },
+                    FadeOut = .25f
                 },
                 panel, CuiHelper.GetGuid());
 
@@ -1049,9 +1050,10 @@ namespace Oxide.Plugins
             {
                 container.Add(new CuiButton
                 {
-                    Button = { Color = color, Command = command, FadeIn = .4f },
+                    Button = { Color = color, Command = command, FadeIn = .25f },
                     RectTransform = { AnchorMin = aMin, AnchorMax = aMax },
-                    Text = { Text = text, FontSize = size, Align = align }
+                    Text = { Text = text, FontSize = size, Align = align },
+                    FadeOut = .25f
                 },
                 panel, CuiHelper.GetGuid());
             }

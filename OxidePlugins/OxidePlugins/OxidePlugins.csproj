@@ -35,6 +35,10 @@
     <Folder Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ClanClothing.cs" />
+    <Compile Include="SurveyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
     <Reference Include="Assembly-CSharp">
       <HintPath>..\..\References\Assembly-CSharp.dll</HintPath>
     </Reference>
@@ -62,6 +66,9 @@
     <Reference Include="Oxide.Ext.CSharp">
       <HintPath>..\..\References\Oxide.Ext.CSharp.dll</HintPath>
     </Reference>
+    <Reference Include="Oxide.Ext.Unity">
+      <HintPath>..\..\References\Oxide.Ext.Unity.dll</HintPath>
+    </Reference>
     <Reference Include="Oxide.Game.Rust">
       <HintPath>..\..\References\Oxide.Game.Rust.dll</HintPath>
     </Reference>
@@ -77,10 +84,6 @@
     <Reference Include="UnityEngine.UI">
       <HintPath>..\..\References\UnityEngine.UI.dll</HintPath>
     </Reference>
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="ClanClothing.cs" />
-    <Compile Include="SurveyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
