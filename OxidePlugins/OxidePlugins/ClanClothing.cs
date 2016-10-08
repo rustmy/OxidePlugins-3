@@ -76,7 +76,8 @@ namespace Oxide.Plugins
                 ["CanAfford"] = "You <color=green>CAN</color> afford this",
                 ["CanNotAfford"] = "You <color=red>CAN NOT</color> afford this",
                 ["NoCost"] = "There is no cost to claim Clan Clothing",
-                ["HowToClaim"] = "type /{0} to claim your clans clothing"
+                ["HowToClaim"] = "type <color=yellow>/{0}</color> to claim your clans clothing",
+                ["HowToView"] = "type <color=yellow>/{0}</color> to view your clans clothing"
             }, this);
         }
 
@@ -298,6 +299,7 @@ namespace Oxide.Plugins
 
             PrintToChat(player, message);
             PrintToChat(player, $"{_pluginConfig.Prefix} {Lang("HowToClaim", player.UserIDString, _pluginConfig.Commands["ClaimCommand"])}");
+            PrintToChat(player, $"{_pluginConfig.Prefix} {Lang("HowToView", player.UserIDString, _pluginConfig.Commands["ViewClanClothing"])}");
         }
 
         /// <summary>

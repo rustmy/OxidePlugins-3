@@ -192,7 +192,7 @@ namespace Oxide.Plugins
         /// //////////////////////////////////////////////////////////////////////////////////////
         private void RemovePluginResources()
         {
-            if (_saveTimer != null) _saveTimer.Destroy();
+            _saveTimer?.Destroy();
             Interface.Oxide.DataFileSystem.WriteObject("SurveyInfo", _storedData);
             foreach (BasePlayer player in BasePlayer.activePlayerList)
             {
@@ -478,7 +478,7 @@ namespace Oxide.Plugins
         /// //////////////////////////////////////////////////////////////////////////////////////
         private void CreateSurveyDataUi(ref CuiElementContainer container, BasePlayer player)
         {
-            List<SurveyData> playerData = _storedData.SurveyInfo[player.userID]?.Values.ToList() ?? new List<SurveyData>();
+            List<SurveyData> playerData = _storedData.SurveyInfo[player.userID]?.Values.ToList();
             if (playerData == null) return;
             playerData.Sort((x, y) => x.Score.CompareTo(y.Score) * -1); //Sort the data by score. Highest first
             SurveyDataUIConfig conf = _pluginConfig.SurveyUiConfig; //Provide quick access to the SurveyDataUIConfig
@@ -487,7 +487,6 @@ namespace Oxide.Plugins
             int row = 0;
             bool showPrevPageButton = recordStartIndex != 0;
             bool showNextPageButton = recordEndIndex != playerData.Count;
-            Puts(playerData.Count.ToString());
 
             for (int recordIndex = recordStartIndex; recordIndex < recordEndIndex; recordIndex++)
             {
@@ -1006,6 +1005,7 @@ namespace Oxide.Plugins
         #region UI Class
         // ReSharper disable once InconsistentNaming
         // ReSharper disable once ClassNeverInstantiated.Local
+        // TODO:  Added FadeOut - Need updated Oxide References
         //////////////////////////////////////////////////////////////////////////////////////
         /// <summary>
         /// @credit to k1lly0u - code from ServerRewards
@@ -1021,7 +1021,7 @@ namespace Oxide.Plugins
                     {
                         new CuiPanel
                         {
-                            Image = {Color = color},
+                            Image = {Color = color, FadeIn = .4f},
                             RectTransform = {AnchorMin = aMin, AnchorMax = aMax},
                             CursorEnabled = true
                         },
@@ -1035,7 +1035,7 @@ namespace Oxide.Plugins
             {
                 container.Add(new CuiLabel
                 {
-                    Text = { Color = color, FontSize = size, Align = align, Text = text },
+                    Text = { Color = color, FontSize = size, Align = align, Text = text, FadeIn = .4f},
                     RectTransform = { AnchorMin = aMin, AnchorMax = aMax }
                 },
                 panel, CuiHelper.GetGuid());
@@ -1045,7 +1045,7 @@ namespace Oxide.Plugins
             {
                 container.Add(new CuiButton
                 {
-                    Button = { Color = color, Command = command },
+                    Button = { Color = color, Command = command, FadeIn = .4f },
                     RectTransform = { AnchorMin = aMin, AnchorMax = aMax },
                     Text = { Text = text, FontSize = size, Align = align }
                 },
