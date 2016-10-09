@@ -37,6 +37,7 @@
   <ItemGroup>
     <Compile Include="AutoCodeLock\AutoCodelock.cs" />
     <Compile Include="ClanClothing\ClanClothing.cs" />
+    <Compile Include="CupboardInfo\CupboardInfo.cs" />
     <Compile Include="SurveyInfo\SurveyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -79,6 +80,7 @@
     <Reference Include="Rust.Xp">
       <HintPath>..\..\References\Rust.Xp.dll</HintPath>
     </Reference>
+    <Reference Include="System" />
     <Reference Include="UnityEngine">
       <HintPath>..\..\References\UnityEngine.dll</HintPath>
     </Reference>
