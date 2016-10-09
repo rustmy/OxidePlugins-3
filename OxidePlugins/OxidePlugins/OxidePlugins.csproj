@@ -35,9 +35,10 @@
     <Folder Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AutoCodeLock\AutoCodelock.cs" />
+    <Compile Include="AutoCodeLock\AutoCodeLock.cs" />
     <Compile Include="ClanClothing\ClanClothing.cs" />
     <Compile Include="CupboardInfo\CupboardInfo.cs" />
+    <Compile Include="HeliTargetInfo\HeliTargetInfo.cs" />
     <Compile Include="SurveyInfo\SurveyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

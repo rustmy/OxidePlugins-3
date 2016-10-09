@@ -7,6 +7,8 @@ using UnityEngine;
 namespace Oxide.Plugins
 {
     // ReSharper disable once UnusedMember.Global
+    [Info("MJSU", "MJSU", "0.0.1")]
+    [Description("Auto adds a codelock to a placed door and set the code")]
     class AutoCodeLock : RustPlugin
     {
         private readonly FieldInfo _codelock = typeof(CodeLock).GetField("code", BindingFlags.NonPublic | BindingFlags.Instance);
