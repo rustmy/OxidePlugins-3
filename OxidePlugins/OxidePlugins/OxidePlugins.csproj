@@ -35,8 +35,9 @@
     <Folder Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ClanClothing.cs" />
-    <Compile Include="SurveyInfo.cs" />
+    <Compile Include="AutoCodeLock\AutoCodelock.cs" />
+    <Compile Include="ClanClothing\ClanClothing.cs" />
+    <Compile Include="SurveyInfo\SurveyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Assembly-CSharp">

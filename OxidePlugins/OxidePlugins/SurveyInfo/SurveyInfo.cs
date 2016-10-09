@@ -420,7 +420,11 @@ namespace Oxide.Plugins
         private void OpenUi(BasePlayer player)
         {
             _playerSurveyDataUiPage[player.userID] = 0;
+
             InitializeDataUi(player);
+
+            CuiElementContainer mouseBugFixContainer = SurveyInfoUI.CreateElementContainer(MouseBugFixContainerName, "0 0 0 0", "0 0", ".01 .01");
+            CuiHelper.AddUi(player, mouseBugFixContainer);
         }
 
         //////////////////////////////////////////////////////////////////////////////////////
@@ -432,15 +436,15 @@ namespace Oxide.Plugins
         private void InitializeDataUi(BasePlayer player)
         {
             CuiElementContainer container = SurveyInfoUI.CreateElementContainer(SurveyContainerName, _pluginConfig.UiColors.SurveyDataContainer, _pluginConfig.SurveyUiConfig.SurveyDataContainerMin, _pluginConfig.SurveyUiConfig.SurveyDataContainerMax);
-            CuiElementContainer mouseBugFixContainer = SurveyInfoUI.CreateElementContainer(MouseBugFixContainerName, "0 0 0 0", "0 0", "1 1");
+           
 
             CreateSurveyDataUiHeader(ref container, player);
             CreateSurveyDataUi(ref container, player);
 
             CuiHelper.DestroyUi(player, GiveToContainerName);
             CuiHelper.DestroyUi(player, SurveyContainerName);
-            CuiHelper.AddUi(player, mouseBugFixContainer);
-            CuiHelper.AddUi(player, container);
+
+            CuiHelper.AddUi(player, container);  
         }
 
         //////////////////////////////////////////////////////////////////////////////////////
@@ -897,7 +901,7 @@ namespace Oxide.Plugins
         private class SurveyDataUIConfig
         {
             public int SurveyDataTextSize = 13;
-            public int SurveyDataRecordsPerPage = 16;
+            public int SurveyDataRecordsPerPage = 18;
             public double SurveyDataRecordYSpacing = .05;
 
             public string SurveyDataContainerMin = ".15 .15";
@@ -1024,10 +1028,10 @@ namespace Oxide.Plugins
                     {
                         new CuiPanel
                         {
-                            Image = {Color = color, FadeIn = .25f},
+                            Image = {Color = color , FadeIn = .05f},
                             RectTransform = {AnchorMin = aMin, AnchorMax = aMax},
                             CursorEnabled = true,
-                            FadeOut = .25f
+                            FadeOut = .05f
                         },
                         new CuiElement().Parent = "Hud",
                         panelName
@@ -1039,9 +1043,8 @@ namespace Oxide.Plugins
             {
                 container.Add(new CuiLabel
                 {
-                    Text = { Color = color, FontSize = size, Align = align, Text = text, FadeIn = .25f},
-                    RectTransform = { AnchorMin = aMin, AnchorMax = aMax },
-                    FadeOut = .25f
+                    Text = { Color = color, FontSize = size, Align = align, Text = text },
+                    RectTransform = { AnchorMin = aMin, AnchorMax = aMax }
                 },
                 panel, CuiHelper.GetGuid());
 
@@ -1050,10 +1053,9 @@ namespace Oxide.Plugins
             {
                 container.Add(new CuiButton
                 {
-                    Button = { Color = color, Command = command, FadeIn = .25f },
+                    Button = { Color = color, Command = command },
                     RectTransform = { AnchorMin = aMin, AnchorMax = aMax },
-                    Text = { Text = text, FontSize = size, Align = align },
-                    FadeOut = .25f
+                    Text = { Text = text, FontSize = size, Align = align }
                 },
                 panel, CuiHelper.GetGuid());
             }
