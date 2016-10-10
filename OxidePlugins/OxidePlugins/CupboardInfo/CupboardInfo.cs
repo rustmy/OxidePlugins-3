@@ -3,7 +3,7 @@
 // ReSharper disable once CheckNamespace
 namespace Oxide.Plugins
 {
-    [Info("MJSU", "MJSU", "0.0.1")]
+    [Info("CupboardInfo", "MJSU", "0.0.1")]
     [Description("Cupboard Info")]
     // ReSharper disable once UnusedMember.Global
     class CupboardInfo : RustPlugin
