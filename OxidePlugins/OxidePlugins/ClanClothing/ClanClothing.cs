@@ -50,6 +50,7 @@ namespace Oxide.Plugins
         private void LoadVersionConfig()
         {
             _pluginConfig = Config.ReadObject<PluginConfig>();
+            Config.WriteObject(_pluginConfig, true);
         }
 
         /// <summary>
@@ -59,7 +60,7 @@ namespace Oxide.Plugins
         {
             lang.RegisterMessages(new Dictionary<string, string>
             {
-                ["NoPermission"] = "You do not have permission to use that command",
+                ["NoPermission"] = "You do not have permission to use this command",
                 ["ExcludedItem"] = "is on the excluded item list and will not be added",
                 ["Claimed"] = "You have claimed your clans clothing",
                 ["Add"] = "You have added your clans clothing",

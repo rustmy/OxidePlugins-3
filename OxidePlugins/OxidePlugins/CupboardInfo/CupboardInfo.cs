@@ -24,6 +24,7 @@ namespace Oxide.Plugins
 
             lang.RegisterMessages(new Dictionary<string, string>()
             {
+                ["NoPermission"] = "You do not have permission to use this command",
                 ["Cleared"] = "You have successfully cleared the cupboard list",
                 ["Authorized"] = "List of users also authorized on this cupboard:",
                 ["StillAuthoried"] = "List of users still authorized on this cupboard:"

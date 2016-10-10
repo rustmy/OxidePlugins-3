@@ -65,7 +65,7 @@ namespace Oxide.Plugins
         {
             lang.RegisterMessages(new Dictionary<string, string>
             {
-                ["NoPermission"] = "You do not have permission to use that command",
+                ["NoPermission"] = "You do not have permission to use this command",
                 ["Lookup"] = "Lookup",
                 ["Remove"] = "Remove",
                 ["GiveTo"] = "Give To",

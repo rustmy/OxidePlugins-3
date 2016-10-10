@@ -45,7 +45,7 @@ namespace Oxide.Plugins
         {
             lang.RegisterMessages(new Dictionary<string, string>
             {
-                ["NoPermission"] = "You do not have permission to use that command"
+                ["NoPermission"] = "You do not have permission to use this command"
             }, this);
         }
 
@@ -116,11 +116,13 @@ namespace Oxide.Plugins
 
             switch (args.Length)
             {
+                //Disable set autocode
                 case 0:
                     _storedData.PlayerCodes[player.userID] = null;
                     PrintToChat(player, $"{_pluginConfig.Prefix} You have disabled AutoCode\n To set again type /ac code");
                     break;
 
+                //Set autocode
                 case 1:
                     if (!ValidCode(args[0]))
                     {
@@ -131,6 +133,7 @@ namespace Oxide.Plugins
                     PrintToChat(player, $"{_pluginConfig.Prefix} You have set your codelock code to {args[0]}");
                     break;
 
+                //How to use AutoCodeLock
                 default:
                     PrintToChat(player, $"{_pluginConfig.Prefix} To set your codelock code type /ac 1234");
                     break;
