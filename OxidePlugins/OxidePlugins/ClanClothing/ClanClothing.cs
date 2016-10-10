@@ -31,9 +31,7 @@ namespace Oxide.Plugins
         private void Loaded()
         {
             LoadVersionConfig();
-
-            _storedData = Interface.Oxide.DataFileSystem.ReadObject<StoredData>("ClanClothing");
-
+            LoadDataFile();
             LoadLang();
 
             //Add the chat commands from the config
@@ -68,6 +66,19 @@ namespace Oxide.Plugins
             }
 
             Config.WriteObject(_pluginConfig, true);
+        }
+
+        private void LoadDataFile()
+        {
+            try
+            {
+                _storedData = Interface.Oxide.DataFileSystem.ReadObject<StoredData>("ClanClothing");
+            }
+            catch
+            {
+                PrintWarning("Data File could not be loaded. Creating new File");
+                _storedData = new StoredData();
+            }
         }
 
         /// <summary>

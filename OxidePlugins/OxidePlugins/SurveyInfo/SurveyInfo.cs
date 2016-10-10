@@ -41,12 +41,10 @@ namespace Oxide.Plugins
         private void Loaded()
         {
             LoadVersionedConfig();
-
-            _storedData = Interface.Oxide.DataFileSystem.ReadObject<StoredData>("SurveyInfo");
+            LoadDataFile();
+            LoadLang();
 
             permission.RegisterPermission(UsePermission, this);
-
-            LoadLang();
 
             //Assigned so it can be destoryed at unload. Repeats max integer times
             _saveTimer = timer.Repeat(_pluginConfig.SaveIntervalInSeconds, int.MaxValue, () =>
@@ -181,7 +179,20 @@ namespace Oxide.Plugins
                 _pluginConfig = DefaultConfig();
             }
 
-            Config.WriteObject(_pluginConfig, true); //Write out the config. If config was updated new values will be written and old ones removed
+            Config.WriteObject(_pluginConfig, true);
+        }
+
+        private void LoadDataFile()
+        {
+            try
+            {
+                _storedData = Interface.Oxide.DataFileSystem.ReadObject<StoredData>("SurveyInfo");
+            }
+            catch
+            {
+                PrintWarning("Data File could not be loaded. Creating new File");
+                _storedData = new StoredData();
+            }
         }
 
         // ReSharper disable once UnusedMember.Local

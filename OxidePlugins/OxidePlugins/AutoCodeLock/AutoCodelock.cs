@@ -29,12 +29,11 @@ namespace Oxide.Plugins
         /// ////////////////////////////////////////////////////////////////////////
         private void Loaded()
         {
-            _storedData = Interface.Oxide.DataFileSystem.ReadObject<StoredData>("AutoCodeLock");
-
-            permission.RegisterPermission(UsePermission, this);
             LoadVersionedConfig();
-
+            LoadDataFile();
             LoadLang();
+            
+            permission.RegisterPermission(UsePermission, this);
         }
 
         ////////////////////////////////////////////////////////////////////////
@@ -80,6 +79,19 @@ namespace Oxide.Plugins
             }
 
             Config.WriteObject(_pluginConfig, true);
+        }
+
+        private void LoadDataFile()
+        {
+            try
+            {
+                _storedData = Interface.Oxide.DataFileSystem.ReadObject<StoredData>("AutoCodeLock");
+            }
+            catch
+            {
+                PrintWarning("Data File could not be loaded. Creating new File");
+                _storedData = new StoredData();
+            }
         }
 
         ////////////////////////////////////////////////////////////////////////
