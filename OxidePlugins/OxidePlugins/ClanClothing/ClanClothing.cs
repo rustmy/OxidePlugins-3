@@ -635,10 +635,14 @@ namespace Oxide.Plugins
         // ReSharper disable once UnusedMember.Local
         private void SendHelpText(BasePlayer player)
         {
-            PrintToChat(player, @"<color=yellow>/cc</color> - Check if you can afford clan clothing\n
+            PrintToChat(player, @"[<color=yellow>Clan Clothing</color>] Help Text:\n
+                                Allows clan owners to set their clans clothing. Clan members can then claim their clan clothing\n
+                                <color=yellow>/cc</color> - Check if you can afford clan clothing\n
                                 <color=yellow>/cc_claim</color> - Claim your clans clothing\n
                                 <color=yellow>/cc_add</color> - Allows the clan owner to set their current clothing as the clan clothing\n
-                                <color=yellow>/cc_remove</color> - Allows the clan owner to remove their current clan clothing");
+                                <color=yellow>/cc_remove</color> - Allows the clan owner to remove their current clan clothing\n
+                                This will also save the skin of the clothing item added");
+                                
         }
     }
 }

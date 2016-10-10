@@ -201,19 +201,19 @@ namespace Oxide.Plugins
 
                 for (int index = 0; index < _pluginConfig.ItemCostList.Count; index++)
                 {
-                    canAfford = true; //Set to true every look
+                    canAfford = true; //Set to true every loop
                     foreach (KeyValuePair<string, int> item in _pluginConfig.ItemCostList[index])
                     {
                         Item playerItem = player.inventory.FindItemID(item.Key);
 
-                        if (playerItem == null || playerItem.amount < item.Value) //If the player cannot afford
+                        if (playerItem == null || playerItem.amount < item.Value) //If the player doesnt have the item or cannot afford
                         {
                             canAfford = false; 
-                            break; //break out of this loop
+                            break; //break out of the inner loop
                         }
                     }
 
-                    if (canAfford) //Made it through a group of costs and has the requirments
+                    if (canAfford) //Made it through a group of costs and has the required items
                     {
                         costIndex = index; //index the player can afford
                         break; //break out of the outer loop
@@ -294,10 +294,9 @@ namespace Oxide.Plugins
         /// ////////////////////////////////////////////////////////////////////////
         private bool ValidCode(string code)
         {
-            if (code.Length != 4) return false; //Code can only be length of 4
             int codeNum;
             if (!int.TryParse(code, out codeNum)) return false; //try to parse the code to an int
-            if (codeNum < 0) return false; //make sure the code is not negative
+            if (codeNum < 0 || codeNum > 9999) return false; //make sure the code is not negative or greater than the the biggest code of 9999
             return true;
         }
 
@@ -366,6 +365,7 @@ namespace Oxide.Plugins
         }
         #endregion
 
+        #region Classes
         // ReSharper disable once ClassNeverInstantiated.Local
         ////////////////////////////////////////////////////////////////////////
         /// <summary>
@@ -392,5 +392,17 @@ namespace Oxide.Plugins
         {
             public Hash<ulong, string> PlayerCodes = new Hash<ulong, string>();
         }
+        #endregion
+
+        #region Help Text
+        private void SendHelpText(BasePlayer player)
+        {
+            PrintToChat(player, @"[<color=yellow>Auto CodeLock</color>] Help Text:\n
+                                Allows players to have a Code Lock added when a player places a door\n
+                                The code on the Code Lock is set, the player is added to the door, and the lock is locked\n
+                                <color=yellow>/ac</color> - remove your set CodeLock code\n
+                                <color=yellow>/ac [code] - ex: /ac 1234 - sets your CodeLock Code to 1234</color>");
+        }
+        #endregion
     }
 }

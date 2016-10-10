@@ -1061,5 +1061,16 @@ namespace Oxide.Plugins
             }
         }
         #endregion
+
+        #region Help Text
+        private void SendHelpText(BasePlayer player)
+        {
+            PrintToChat(player, @"[<color=yellow>Survey Info</color>] Help Text:\n
+                                When a player throws a survey charge it and it produces items i gets recored and saved\n
+                                Commands:\n
+                                <color=yellow>/si</color> - Opens the Survey Info GUI\n
+                                Supports looking up / removing / giving your survey charge info");
+        }
+        #endregion
     }
 }
