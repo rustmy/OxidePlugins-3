@@ -5,7 +5,7 @@ using ProtoBuf;
 namespace Oxide.Plugins
 {
     [Info("CupboardInfo", "MJSU", "0.0.1")]
-    [Description("Cupboard Info")]
+    [Description("Displays the changes to cupboards to the user")]
     // ReSharper disable once UnusedMember.Global
     class CupboardInfo : RustPlugin
     {

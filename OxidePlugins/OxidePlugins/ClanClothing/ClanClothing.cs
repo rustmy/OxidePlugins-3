@@ -8,6 +8,7 @@ using Oxide.Core.Plugins;
 namespace Oxide.Plugins
 {
     [Info("Clan Clothing", "MJSU", "0.0.1")]
+    [Description("Allows clans to set clan clothing")]
     // ReSharper disable once UnusedMember.Global
     class ClanClothing : RustPlugin
     {
