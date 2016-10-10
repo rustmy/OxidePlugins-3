@@ -10,7 +10,7 @@ namespace Oxide.Plugins
     {
         private PluginConfig _pluginConfig;
 
-        private readonly string _usePermission = "cupboardinfo.use";
+        private const string UsePermission = "cupboardinfo.use";
 
         #region Plugin Loading & Initalizing
         ///////////////////////////////////////////////////////////////
@@ -30,7 +30,7 @@ namespace Oxide.Plugins
                 ["StillAuthoried"] = "List of users still authorized on this cupboard:"
             }, this);
 
-            permission.RegisterPermission(_usePermission, this);
+            permission.RegisterPermission(UsePermission, this);
         }
 
         ///////////////////////////////////////////////////////////////
@@ -69,7 +69,7 @@ namespace Oxide.Plugins
         // ReSharper disable once UnusedMember.Local
         void OnCupboardClearList(BuildingPrivlidge privilege, BasePlayer player)
         {
-            if(CheckPermission(player, _usePermission, false))
+            if(CheckPermission(player, UsePermission, false))
                 PrintToChat(player, $"{_pluginConfig.Prefix} {Lang("Cleared", player.UserIDString)}");
         }
 
@@ -84,7 +84,7 @@ namespace Oxide.Plugins
         void OnCupboardAuthorize(BuildingPrivlidge privilege, BasePlayer player)
         {
             if (privilege.authorizedPlayers.Count <= 0) return;
-            if (!CheckPermission(player, _usePermission, false)) return;
+            if (!CheckPermission(player, UsePermission, false)) return;
             PrintToChat(player, $"{_pluginConfig.Prefix} {Lang("Authorized", player.UserIDString)}");
             DisplayCupboardData(privilege, player);
         }
@@ -100,7 +100,7 @@ namespace Oxide.Plugins
         void OnCupboardDeauthorize(BuildingPrivlidge privilege, BasePlayer player)
         {
             if (privilege.authorizedPlayers.Count <= 0) return;
-            if (!CheckPermission(player, _usePermission, false)) return;
+            if (!CheckPermission(player, UsePermission, false)) return;
             PrintToChat(player, $"{_pluginConfig.Prefix} {Lang("StillAuthoried", player.UserIDString)}");
             DisplayCupboardData(privilege, player);
         }

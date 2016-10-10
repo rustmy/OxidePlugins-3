@@ -24,7 +24,7 @@ namespace Oxide.Plugins
         private StoredData _storedData; //Data File
         private PluginConfig _pluginConfig; //Config File
 
-        private const string _usePermission = "surveyinfo.use";
+        private const string UsePermission = "surveyinfo.use";
 
         private readonly Hash<ulong, int> _playerSurveyDataUiPage = new Hash<ulong, int>(); //Determines what page on the survey data ui the player is on
         private readonly Hash<ulong, int> _playerGiveToUiPage = new Hash<ulong, int>(); //Determines what page on the give to ui the player is on
@@ -44,7 +44,7 @@ namespace Oxide.Plugins
 
             _storedData = Interface.Oxide.DataFileSystem.ReadObject<StoredData>("SurveyInfo");
 
-            permission.RegisterPermission(_usePermission, this);
+            permission.RegisterPermission(UsePermission, this);
 
             LoadLang();
 
@@ -297,7 +297,7 @@ namespace Oxide.Plugins
                     }
                     data.Score = (float)((score / _bestPossibleSurveyScore) * 100);
 
-                    if (CheckPermission(player, _usePermission, false)) //If the player has permission display info to the user
+                    if (CheckPermission(player, UsePermission, false)) //If the player has permission display info to the user
                     {
                         DisplaySurveyLoot(player, data);
                         DrawSurveyIdAtSurveyLocation(data, player);
@@ -326,7 +326,7 @@ namespace Oxide.Plugins
         // ReSharper disable once UnusedParameter.Local
         private void SurveyInfoChatCommand(BasePlayer player, string command, string[] args)
         {
-            if (!CheckPermission(player, _usePermission, true)) return;
+            if (!CheckPermission(player, UsePermission, true)) return;
             OpenUi(player);
         }
         #endregion
@@ -629,7 +629,7 @@ namespace Oxide.Plugins
 
             BasePlayer player = arg.connection.player as BasePlayer;
             if (!player) return; //Not a player
-            if (!CheckPermission(player, _usePermission, true)) return; //Doesn't have permission
+            if (!CheckPermission(player, UsePermission, true)) return; //Doesn't have permission
 
             int surveyId;
             if (!int.TryParse(arg.Args[0], out surveyId)) return; //Not an integer

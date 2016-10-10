@@ -11,13 +11,13 @@ namespace Oxide.Plugins
     [Description("Adds a codelock to a placed door and set the code")]
     class AutoCodeLock : RustPlugin
     {
-        private readonly FieldInfo _codelock = typeof(CodeLock).GetField("code", BindingFlags.NonPublic | BindingFlags.Instance);
+        private readonly FieldInfo _codelockField = typeof(CodeLock).GetField("code", BindingFlags.NonPublic | BindingFlags.Instance);
         readonly FieldInfo _whitelistField = typeof(CodeLock).GetField("whitelistPlayers", BindingFlags.Instance | BindingFlags.NonPublic);
 
         private StoredData _storedData;
         private PluginConfig _pluginConfig; //Config File
 
-        private const string _usePermission = "autocodelock.use";
+        private const string UsePermission = "autocodelock.use";
         private const string CodeLockPrefabLocation = "assets/prefabs/locks/keypad/lock.code.prefab";
         private bool _serverInitialized = false;
 
@@ -31,7 +31,7 @@ namespace Oxide.Plugins
         {
             _storedData = Interface.Oxide.DataFileSystem.ReadObject<StoredData>("AutoCodes");
 
-            permission.RegisterPermission(_usePermission, this);
+            permission.RegisterPermission(UsePermission, this);
             LoadVersionedConfig();
 
             LoadLang();
@@ -119,7 +119,7 @@ namespace Oxide.Plugins
         [ChatCommand("ac")]
         private void SurveyInfoChatCommand(BasePlayer player, string command, string[] args)
         {
-            if (!CheckPermission(player, _usePermission, true)) return;
+            if (!CheckPermission(player, UsePermission, true)) return;
 
             switch (args.Length)
             {
@@ -274,7 +274,7 @@ namespace Oxide.Plugins
             if (!string.IsNullOrEmpty(code))
             {
                 CodeLock @lock = lockentity.GetComponent<CodeLock>();
-                _codelock.SetValue(@lock, code);
+                _codelockField.SetValue(@lock, code);
                 @lock.SetFlag(BaseEntity.Flags.Locked, true);
             }
 
