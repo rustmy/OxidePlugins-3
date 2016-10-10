@@ -52,6 +52,9 @@ namespace Oxide.Plugins
             _pluginConfig = Config.ReadObject<PluginConfig>();
         }
 
+        /// <summary>
+        /// Register the lang messages for the plugin
+        /// </summary>
         private void LoadLang()
         {
             lang.RegisterMessages(new Dictionary<string, string>
@@ -81,11 +84,18 @@ namespace Oxide.Plugins
             }, this);
         }
 
+        /// <summary>
+        /// Load the default config for the plugin
+        /// </summary>
         protected override void LoadDefaultConfig()
         {
             Config.WriteObject(DefaultConfig(), true);
         }
 
+        /// <summary>
+        /// Returns the default config for the plugin
+        /// </summary>
+        /// <returns>Default config as PluginConfig</returns>
         // ReSharper disable once UnusedMember.Local
         private PluginConfig DefaultConfig()
         {
@@ -125,6 +135,7 @@ namespace Oxide.Plugins
         /// Wipes the Clan Clothing data on map wipe if WipeDataOnMapWipe is set to true on the config
         /// </summary>
         /// <param name="name"></param>
+        /// ///////////////////////////////////////////////////////////////
         // ReSharper disable once UnusedMember.Local
         // ReSharper disable once UnusedParameter.Local
         private void OnNewSave(string name)
@@ -140,6 +151,7 @@ namespace Oxide.Plugins
         /// <summary>
         /// Determines if the Clans plugin loaded. If not displays an error
         /// </summary>
+        /// ///////////////////////////////////////////////////////////////
         // ReSharper disable once UnusedMember.Local
         private void OnServerInitialized()
         {
@@ -161,7 +173,11 @@ namespace Oxide.Plugins
                 }
             }
         }
-
+        ///////////////////////////////////////////////////////////////
+        /// <summary>
+        /// Plugin Unloading Save DataFile
+        /// </summary>
+        /// ///////////////////////////////////////////////////////////////
         // ReSharper disable once UnusedMember.Local
         private void Unload()
         {
@@ -177,6 +193,7 @@ namespace Oxide.Plugins
         /// <param name="player"></param>
         /// <param name="command"></param>
         /// <param name="args"></param>
+        /// ///////////////////////////////////////////////////////////////
         private void RedeemChatCommand(BasePlayer player, string command, string[] args)
         {
             if (!CheckPermission(player, UsePermission, true)) return; //Make sure player has permission
@@ -210,6 +227,7 @@ namespace Oxide.Plugins
         /// <param name="player"></param>
         /// <param name="command"></param>
         /// <param name="args"></param>
+        /// ///////////////////////////////////////////////////////////////
         private void AddChatCommand(BasePlayer player, string command, string[] args)
         {
             if (!CheckPermission(player, UsePermission, true)) return; //Make sure player has permission
@@ -243,6 +261,7 @@ namespace Oxide.Plugins
         /// <param name="player"></param>
         /// <param name="command"></param>
         /// <param name="args"></param>
+        /// ///////////////////////////////////////////////////////////////
         private void RemoveChatCommand(BasePlayer player, string command, string[] args)
         {
             if (!CheckPermission(player, UsePermission, true)) return;
@@ -256,12 +275,14 @@ namespace Oxide.Plugins
             PrintToChat(player, $"{_pluginConfig.Prefix} {Lang("Remove", player.UserIDString)}");
         }
 
+        ///////////////////////////////////////////////////////////////
         /// <summary>
         /// Chat Command for play to check how much Clan Clothing costs
         /// </summary>
         /// <param name="player"></param>
         /// <param name="command"></param>
         /// <param name="args"></param>
+        /// ///////////////////////////////////////////////////////////////
         private void CheckCostChatCommand(BasePlayer player, string command, string[] args)
         {
             if (!CheckPermission(player, UsePermission, true)) return; //Player does not have permission
@@ -302,6 +323,7 @@ namespace Oxide.Plugins
             PrintToChat(player, $"{_pluginConfig.Prefix} {Lang("HowToView", player.UserIDString, _pluginConfig.Commands["ViewClanClothing"])}");
         }
 
+        ///////////////////////////////////////////////////////////////
         /// <summary>
         /// Player command to see their clans clothing
         /// If a skin is used will show the skin name
@@ -309,6 +331,7 @@ namespace Oxide.Plugins
         /// <param name="player"></param>
         /// <param name="command"></param>
         /// <param name="args"></param>
+        /// ///////////////////////////////////////////////////////////////
         private void ViewClanClothingChatCommand(BasePlayer player, string command, string[] args)
         {
             if (!CheckPermission(player, UsePermission, true)) return; //Player does not have permission
@@ -351,6 +374,13 @@ namespace Oxide.Plugins
         #endregion
 
         #region Can Afford & Take Items and Points
+        ///////////////////////////////////////////////////////////////
+        /// <summary>
+        /// Determines if the player can afford the clan clothing
+        /// </summary>
+        /// <param name="player"></param>
+        /// <returns></returns>
+        /// ///////////////////////////////////////////////////////////////
         private bool CanPlayerAfford(BasePlayer player)
         {
             if (!_pluginConfig.UseCost) return true; //Use cost is false
@@ -419,6 +449,13 @@ namespace Oxide.Plugins
             return true; //Player can afford
         }
 
+        ///////////////////////////////////////////////////////////////
+        /// <summary>
+        /// Takes the cost from the player
+        /// </summary>
+        /// <param name="player"></param>
+        /// <returns></returns>
+        /// ///////////////////////////////////////////////////////////////
         private bool TakeCostFromPlayer(BasePlayer player)
         {
             if (!_pluginConfig.UseCost) return true; //Use cost is false
@@ -457,6 +494,13 @@ namespace Oxide.Plugins
             return true; //Successfully removed all the necessary costs from the player
         }
 
+        ///////////////////////////////////////////////////////////////
+        /// <summary>
+        /// Gets the players can tag.
+        /// </summary>
+        /// <param name="player"></param>
+        /// <returns>Players clan tag or null if player is not in a clan</returns>
+        /// ///////////////////////////////////////////////////////////////
         private string GetPlayerClanTag(BasePlayer player)
         {
             if (Clans == null) //No Clans plugin loaded
@@ -475,6 +519,12 @@ namespace Oxide.Plugins
             return playerClanTag;
         }
 
+        /// <summary>
+        /// Determines if the player is the owner of the clan
+        /// </summary>
+        /// <param name="player">Player calling the plugin</param>
+        /// <param name="playerClanTag">Clan tag of the player</param>
+        /// <returns>true if player is owner of the clan, false otherwise</returns>
         private bool IsPlayerClanOwner(BasePlayer player, string playerClanTag)
         {
             JObject playerClanData = Clans?.Call<JObject>("GetClan", playerClanTag); //Gets the players Clan Information
@@ -535,6 +585,7 @@ namespace Oxide.Plugins
         /// <summary>
         /// Clan Clothing Plugin Config
         /// </summary>
+        /// ///////////////////////////////////////////////////////////////
         private class PluginConfig
         {
             public List<string> ExcludedItems;
@@ -556,6 +607,7 @@ namespace Oxide.Plugins
         /// <summary>
         /// Clan Clothing Plugin Data
         /// </summary>
+        /// ///////////////////////////////////////////////////////////////
         private class StoredData
         {
             public Hash<string, List<ClothingItem>> ClanClothing = new Hash<string, List<ClothingItem>>();
@@ -565,6 +617,7 @@ namespace Oxide.Plugins
         /// <summary>
         /// Represents a clothing item for a clan
         /// </summary>
+        /// ///////////////////////////////////////////////////////////////
         private class ClothingItem
         {
             public int ItemId;

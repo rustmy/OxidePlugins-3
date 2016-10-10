@@ -8,11 +8,16 @@ namespace Oxide.Plugins
     // ReSharper disable once UnusedMember.Global
     class CupboardInfo : RustPlugin
     {
-
         private PluginConfig _pluginConfig;
 
         private readonly string _usePermission = "cupboardinfo.use";
 
+        #region Plugin Loading & Initalizing
+        ///////////////////////////////////////////////////////////////
+        /// <summary>
+        /// Plugin is being loaded
+        /// </summary>
+        /// ///////////////////////////////////////////////////////////////
         private void Loaded()
         {
             _pluginConfig = Config.ReadObject<PluginConfig>();
@@ -27,11 +32,20 @@ namespace Oxide.Plugins
             permission.RegisterPermission(_usePermission, this);
         }
 
+        ///////////////////////////////////////////////////////////////
+        /// <summary>
+        /// Load the plugins default config
+        /// </summary>
+        /// ///////////////////////////////////////////////////////////////
         protected override void LoadDefaultConfig()
         {
             Config.WriteObject(DefaultConfig(), true);
         }
 
+        /// <summary>
+        /// Plugins default config
+        /// </summary>
+        /// <returns></returns>
         private PluginConfig DefaultConfig()
         {
             return new PluginConfig
@@ -40,7 +54,16 @@ namespace Oxide.Plugins
                 UsePermission = false
             };
         }
+        #endregion
 
+        #region Oxide Hooks
+        ///////////////////////////////////////////////////////////////
+        /// <summary>
+        /// Called when the player clears a cupboard
+        /// </summary>
+        /// <param name="privilege"></param>
+        /// <param name="player"></param>
+        /// ///////////////////////////////////////////////////////////////
         // ReSharper disable once UnusedMember.Local
         void OnCupboardClearList(BuildingPrivlidge privilege, BasePlayer player)
         {
@@ -48,6 +71,13 @@ namespace Oxide.Plugins
                 PrintToChat(player, $"{_pluginConfig.Prefix} {Lang("Cleared", player.UserIDString)}");
         }
 
+        ///////////////////////////////////////////////////////////////
+        /// <summary>
+        /// Called when a player authorizes on a cupbaord
+        /// </summary>
+        /// <param name="privilege"></param>
+        /// <param name="player"></param>
+        /// ///////////////////////////////////////////////////////////////
         // ReSharper disable once UnusedMember.Local
         void OnCupboardAuthorize(BuildingPrivlidge privilege, BasePlayer player)
         {
@@ -57,6 +87,13 @@ namespace Oxide.Plugins
             DisplayCupboardData(privilege, player);
         }
 
+        ///////////////////////////////////////////////////////////////
+        /// <summary>
+        /// Called when a player defaulthorizes on a cupboard
+        /// </summary>
+        /// <param name="privilege"></param>
+        /// <param name="player"></param>
+        /// ///////////////////////////////////////////////////////////////
         // ReSharper disable once UnusedMember.Local
         void OnCupboardDeauthorize(BuildingPrivlidge privilege, BasePlayer player)
         {
@@ -65,7 +102,16 @@ namespace Oxide.Plugins
             PrintToChat(player, $"{_pluginConfig.Prefix} {Lang("StillAuthoried", player.UserIDString)}");
             DisplayCupboardData(privilege, player);
         }
+        #endregion
 
+        #region Display Data
+        ///////////////////////////////////////////////////////////////
+        /// <summary>
+        /// Displays the cupboard information to the player
+        /// </summary>
+        /// <param name="privilege"></param>
+        /// <param name="player"></param>
+        /// ///////////////////////////////////////////////////////////////
         private void DisplayCupboardData(BuildingPrivlidge privilege, BasePlayer player)
         {
             foreach (ProtoBuf.PlayerNameID user in privilege.authorizedPlayers)
@@ -76,6 +122,7 @@ namespace Oxide.Plugins
                 }
             }
         }
+        #endregion
 
         #region Helper Methods
 
@@ -117,10 +164,17 @@ namespace Oxide.Plugins
 
         #endregion
 
+        #region Classes
+        ///////////////////////////////////////////////////////////////
+        /// <summary>
+        /// Plugins Config
+        /// </summary>
+        /// ///////////////////////////////////////////////////////////////
         class PluginConfig
         {
             public string Prefix;
             public bool UsePermission;
         }
+        #endregion
     }
 }

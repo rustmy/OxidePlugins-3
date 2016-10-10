@@ -4,13 +4,20 @@ using System.Collections.Generic;
 // ReSharper disable once CheckNamespace
 namespace Oxide.Plugins
 {
-    [Info("MJSU", "MJSU", "0.0.1")]
+    [Info("HeliTargetInfo", "MJSU", "0.0.1")]
     [Description("Displays who the heli locks onto")]
     // ReSharper disable once UnusedMember.Global
     class HeliTargetInfo : RustPlugin
     {
         private PluginConfig _pluginConfig;
+        private readonly Hash<ulong, DateTime> _heliTargetCooldown = new Hash<ulong, DateTime>();
 
+        #region Plugin Loading & Setup
+        //////////////////////////////////////////////////////////////////////////////////////
+        /// <summary>
+        /// Called when the plugin is loading
+        /// </summary>
+        /// //////////////////////////////////////////////////////////////////////////////////////
         // ReSharper disable once UnusedMember.Local
         private void Loaded()
         {
@@ -22,11 +29,22 @@ namespace Oxide.Plugins
             }, this);
         }
 
+        //////////////////////////////////////////////////////////////////////////////////////
+        /// <summary>
+        /// Loads the plugins default config
+        /// </summary>
+        /// //////////////////////////////////////////////////////////////////////////////////////
         protected override void LoadDefaultConfig()
         {
             Config.WriteObject(DefaultConfig(), true);
         }
 
+        //////////////////////////////////////////////////////////////////////////////////////
+        /// <summary>
+        /// Plugins default config
+        /// </summary>
+        /// <returns></returns>
+        /// //////////////////////////////////////////////////////////////////////////////////////
         private PluginConfig DefaultConfig()
         {
             return new PluginConfig
@@ -35,8 +53,16 @@ namespace Oxide.Plugins
                 Cooldown = new TimeSpan(0, 0, 5, 0)
             };
         }
+        #endregion
 
-        private readonly Hash<ulong, DateTime> _heliTargetCooldown = new Hash<ulong, DateTime>();
+        #region Oxide Hooks      
+        //////////////////////////////////////////////////////////////////////////////////////  
+        /// <summary>
+        /// Called when the heli locks onto a player
+        /// </summary>
+        /// <param name="turret"></param>
+        /// <param name="entity"></param>
+        /// //////////////////////////////////////////////////////////////////////////////////////
         // ReSharper disable once UnusedMember.Local
         // ReSharper disable once UnusedParameter.Local
         void OnHelicopterTarget(HelicopterTurret turret, BaseCombatEntity entity)
@@ -49,9 +75,27 @@ namespace Oxide.Plugins
                 _heliTargetCooldown[player.userID] = DateTime.Now + _pluginConfig.Cooldown;
             }
         }
+        #endregion
 
-        private string Lang(string key, string id = null, params object[] args) => string.Format(lang.GetMessage(key, this, id), args);
+        #region Helper Methods
+        //////////////////////////////////////////////////////////////////////////////////////
+        /// <summary>
+        /// @credit to Exel80 - code from EasyVote
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="id"></param>
+        /// <param name="args"></param>
+        /// <returns></returns>
+        ///  //////////////////////////////////////////////////////////////////////////////////////
+        private string Lang(string key, string id = null, params object[] args)
+            => string.Format(lang.GetMessage(key, this, id), args);
+        #endregion
 
+        //////////////////////////////////////////////////////////////////////////////////////
+        /// <summary>
+        /// Config for the plugin
+        /// </summary>
+        /// //////////////////////////////////////////////////////////////////////////////////////
         class PluginConfig
         {
             public string Prefix;
