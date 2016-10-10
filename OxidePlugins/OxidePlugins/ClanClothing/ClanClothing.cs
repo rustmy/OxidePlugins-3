@@ -101,6 +101,7 @@ namespace Oxide.Plugins
         /// </summary>
         protected override void LoadDefaultConfig()
         {
+            PrintWarning("Loading Default Config");
             Config.WriteObject(DefaultConfig(), true);
         }
 
@@ -111,7 +112,6 @@ namespace Oxide.Plugins
         // ReSharper disable once UnusedMember.Local
         private PluginConfig DefaultConfig()
         {
-            PrintWarning("Loading Default Config");
             return new PluginConfig
             {
                 ExcludedItems = new List<string> { "metal.facemask", "metal.plate.torso", "roadsign.jacket", "roadsign.kilt" },

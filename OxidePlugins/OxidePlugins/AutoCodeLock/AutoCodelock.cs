@@ -82,6 +82,7 @@ namespace Oxide.Plugins
         /// ////////////////////////////////////////////////////////////////////////
         protected override void LoadDefaultConfig()
         {
+            PrintWarning("Loading Default Config");
             Config.WriteObject(DefaultConfig(), true);
         }
 
@@ -93,7 +94,6 @@ namespace Oxide.Plugins
         /// ////////////////////////////////////////////////////////////////////////
         private PluginConfig DefaultConfig()
         {
-            PrintWarning("Loading Default Config");
             return new PluginConfig
             {
                 Prefix = "[<color=yellow>Auto CodeLock</color>]",

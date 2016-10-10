@@ -144,12 +144,12 @@ namespace Oxide.Plugins
 
         protected override void LoadDefaultConfig()
         {
+            PrintWarning("Loading Default Config");
             Config.WriteObject(DefaultConfig());
         }
 
         private PluginConfig DefaultConfig()
         {
-            PrintWarning("Loading Default Config");
             return new PluginConfig
             {
                 Prefix = "[<color=yellow>Survey Info</color>]",
@@ -170,7 +170,7 @@ namespace Oxide.Plugins
             if (_pluginConfig.ConfigVersion == null)
             {
                 PrintWarning("Config failed to load correctly. Backing up to SurveyInfo.error.json and using default config");
-                Config.WriteObject(_pluginConfig, true, Interface.Oxide.ConfigDirectory + "/SurveyInfo.error.json");
+                Config.WriteObject(_pluginConfig, true, Interface.Oxide.ConfigDirectory + "/AutoCodeLock.error.json");
                 _pluginConfig = DefaultConfig();
             }
 
