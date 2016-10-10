@@ -247,7 +247,7 @@ namespace Oxide.Plugins
                 {
                     ItemDefinition itemToTake = ItemManager.FindItemDefinition(item.Key);
                     player.Command("note.inv ", itemToTake.itemid, item.Value * -1f);
-                    player.inventory.Take(collection, .itemid, item.Value);
+                    player.inventory.Take(collection, itemToTake.itemid, item.Value);
                 }
             }
         }
