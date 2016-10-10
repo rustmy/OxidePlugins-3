@@ -632,6 +632,7 @@ namespace Oxide.Plugins
         }
         #endregion
 
+        #region Help Text
         // ReSharper disable once UnusedMember.Local
         private void SendHelpText(BasePlayer player)
         {
@@ -644,5 +645,6 @@ namespace Oxide.Plugins
                                 This will also save the skin of the clothing item added");
                                 
         }
+        #endregion
     }
 }

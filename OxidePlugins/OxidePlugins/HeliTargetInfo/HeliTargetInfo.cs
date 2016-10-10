@@ -47,6 +47,7 @@ namespace Oxide.Plugins
         /// //////////////////////////////////////////////////////////////////////////////////////
         private PluginConfig DefaultConfig()
         {
+            PrintWarning("Loading Default Config");
             return new PluginConfig
             {
                 Prefix = "[<color=yellow>Heli Target Info</color>]",

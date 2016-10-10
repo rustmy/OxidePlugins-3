@@ -40,6 +40,7 @@ namespace Oxide.Plugins
         /// ///////////////////////////////////////////////////////////////
         protected override void LoadDefaultConfig()
         {
+            PrintWarning("Loading Default Config");
             Config.WriteObject(DefaultConfig(), true);
         }
 

@@ -40,9 +40,9 @@ namespace Oxide.Plugins
         // ReSharper disable once UnusedMember.Local
         private void Loaded()
         {
+            LoadVersionedConfig();
+
             _storedData = Interface.Oxide.DataFileSystem.ReadObject<StoredData>("SurveyInfo");
-            _pluginConfig = Config.ReadObject<PluginConfig>();
-            Config.WriteObject(_pluginConfig, true); //Write out the config. If config was updated new values will be written and old ones removed
 
             permission.RegisterPermission(_usePermission, this);
 
@@ -144,7 +144,29 @@ namespace Oxide.Plugins
 
         protected override void LoadDefaultConfig()
         {
-            Config.WriteObject(new PluginConfig());
+            Config.WriteObject(DefaultConfig());
+        }
+
+        private PluginConfig DefaultConfig()
+        {
+            PrintWarning("Loading Default Config");
+            return new PluginConfig
+            {
+                Prefix = "[<color=yellow>Survey Info</color>]",
+                SaveIntervalInSeconds = 600f,
+                SurveyIdDisplayLengthInSeconds = 150f,
+                UsePermission = false,
+                UiColors = new UIColors(),
+                SurveyUiConfig = new SurveyDataUIConfig(),
+                GiveToUiConfig = new GiveToUIConfig(),
+                ConfigVersion = Version.ToString()
+            };
+        }
+
+        private void LoadVersionedConfig()
+        {
+            _pluginConfig = Config.ReadObject<PluginConfig>();
+            Config.WriteObject(_pluginConfig, true); //Write out the config. If config was updated new values will be written and old ones removed
         }
 
         // ReSharper disable once UnusedMember.Local
@@ -998,13 +1020,14 @@ namespace Oxide.Plugins
         private class PluginConfig
         {
             #region Class Fields
-            public string Prefix = "[<color=yellow>Survey Info</color>]";
-            public float SaveIntervalInSeconds = 600f;
-            public float SurveyIdDisplayLengthInSeconds = 150f;
-            public bool UsePermission = false;
-            public UIColors UiColors = new UIColors();
-            public SurveyDataUIConfig SurveyUiConfig = new SurveyDataUIConfig();
-            public GiveToUIConfig GiveToUiConfig = new GiveToUIConfig();
+            public string Prefix;
+            public float SaveIntervalInSeconds;
+            public float SurveyIdDisplayLengthInSeconds;
+            public bool UsePermission;
+            public UIColors UiColors;
+            public SurveyDataUIConfig SurveyUiConfig;
+            public GiveToUIConfig GiveToUiConfig;
+            public string ConfigVersion;
             #endregion
         }
         #endregion
