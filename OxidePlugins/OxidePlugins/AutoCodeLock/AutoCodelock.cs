@@ -8,7 +8,7 @@ namespace Oxide.Plugins
 {
     // ReSharper disable once UnusedMember.Global
     [Info("AutoCodeLock", "MJSU", "0.0.1")]
-    [Description("Auto adds a codelock to a placed door and set the code")]
+    [Description("Adds a codelock to a placed door and set the code")]
     class AutoCodeLock : RustPlugin
     {
         private readonly FieldInfo _codelock = typeof(CodeLock).GetField("code", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -18,6 +18,7 @@ namespace Oxide.Plugins
         private PluginConfig _pluginConfig; //Config File
 
         private const string _usePermission = "autocodelock.use";
+        private const string CodeLockPrefabLocation = "assets/prefabs/locks/keypad/lock.code.prefab";
         private bool _serverInitialized = false;
 
         // ReSharper disable once UnusedMember.Local
@@ -45,7 +46,12 @@ namespace Oxide.Plugins
         {
             lang.RegisterMessages(new Dictionary<string, string>
             {
-                ["NoPermission"] = "You do not have permission to use this command"
+                ["NoPermission"] = "You do not have permission to use this command",
+                ["Disabled"] = "You have disabled AutoCode\n To set again type /ac code",
+                ["InvalidCode"] = "Your code '{0}' is not valid",
+                ["CodeSet"] = "You have set your codelock code to {0}",
+                ["HowToSet"] = "To set your codelock code type /ac 1234",
+                ["CanNotAfford"] = "You can not afford to use AutoCodelock"
             }, this);
         }
 
@@ -119,23 +125,23 @@ namespace Oxide.Plugins
                 //Disable set autocode
                 case 0:
                     _storedData.PlayerCodes[player.userID] = null;
-                    PrintToChat(player, $"{_pluginConfig.Prefix} You have disabled AutoCode\n To set again type /ac code");
+                    PrintToChat(player, $"{_pluginConfig.Prefix} {Lang("Disabled", player.UserIDString)}");
                     break;
 
                 //Set autocode
                 case 1:
                     if (!ValidCode(args[0]))
                     {
-                        PrintToChat(player, $"{_pluginConfig.Prefix} Your code '{args[0]}' is not valid");
+                        PrintToChat(player, $"{_pluginConfig.Prefix} {Lang("InvalidCode", player.UserIDString, args[0])}");
                         return;
                     }
                     _storedData.PlayerCodes[player.userID] = ParseToSaveFormat(args[0]);
-                    PrintToChat(player, $"{_pluginConfig.Prefix} You have set your codelock code to {args[0]}");
+                    PrintToChat(player, $"{_pluginConfig.Prefix} {Lang("CodeSet", player.UserIDString, args[0])}");
                     break;
 
                 //How to use AutoCodeLock
                 default:
-                    PrintToChat(player, $"{_pluginConfig.Prefix} To set your codelock code type /ac 1234");
+                    PrintToChat(player, $"{_pluginConfig.Prefix} {Lang("HowToSet", player.UserIDString)}");
                     break;
             }
 
@@ -164,7 +170,7 @@ namespace Oxide.Plugins
             int index;
             if (!CanAfford(player, out index)) //Player cannot afford
             {
-                PrintToChat(player, "You can not afford to use AutoCodelock");
+                PrintToChat(player, $"{_pluginConfig.Prefix} {Lang("CanNotAfford", player.UserIDString)}");
                 return;
             }
 
@@ -253,7 +259,7 @@ namespace Oxide.Plugins
         private void AddLockToDoor(BasePlayer player, Door door)
         {
             //Create a CodeLock
-            BaseEntity lockentity = GameManager.server.CreateEntity("assets/prefabs/locks/keypad/lock.code.prefab", Vector3.zero, new Quaternion());
+            BaseEntity lockentity = GameManager.server.CreateEntity(CodeLockPrefabLocation, Vector3.zero, new Quaternion());
 
             lockentity.OnDeployed(door);
 
