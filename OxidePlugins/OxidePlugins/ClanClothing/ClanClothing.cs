@@ -31,6 +31,7 @@ namespace Oxide.Plugins
         private void Loaded()
         {
             LoadVersionConfig();
+
             _storedData = Interface.Oxide.DataFileSystem.ReadObject<StoredData>("ClanClothing");
 
             LoadLang();
@@ -131,7 +132,7 @@ namespace Oxide.Plugins
                 EconomicsCost = 0,
                 Commands = new Hash<string, string>
                 {
-                    ["CheckCost"] = "cc",
+                    ["CheckCost"] = "cc_check",
                     ["ViewClanClothing"] = "cc_view",
                     ["ClaimCommand"] = "cc_claim",
                     ["AddCommand"] = "cc_add",
