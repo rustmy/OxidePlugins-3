@@ -493,10 +493,12 @@ namespace Oxide.Plugins
 
             if (_pluginConfig.UseItems) //Use items is true
             {
+                List<Item> collection = new List<Item>();
                 foreach (KeyValuePair<string, int> item in _pluginConfig.ItemCostList)
                 {
-                    List<Item> collection = new List<Item>();
-                    player.inventory.Take(collection, ItemManager.FindItemDefinition(item.Key).itemid, item.Value);
+                    ItemDefinition itemToTake = ItemManager.FindItemDefinition(item.Key);
+                    player.Command("note.inv ", itemToTake.itemid, item.Value * -1f);
+                    player.inventory.Take(collection, itemToTake.itemid, item.Value);
                 }
             }
 

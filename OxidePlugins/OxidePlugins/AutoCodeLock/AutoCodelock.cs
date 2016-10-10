@@ -245,7 +245,9 @@ namespace Oxide.Plugins
 
                 foreach (KeyValuePair<string, int> item in items) //Loop over the items and collect them from the player
                 {
-                    player.inventory.Take(collection, ItemManager.FindItemDefinition(item.Key).itemid, item.Value);
+                    ItemDefinition itemToTake = ItemManager.FindItemDefinition(item.Key);
+                    player.Command("note.inv ", itemToTake.itemid, item.Value * -1f);
+                    player.inventory.Take(collection, .itemid, item.Value);
                 }
             }
         }
