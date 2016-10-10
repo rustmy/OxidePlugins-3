@@ -51,12 +51,19 @@ namespace Oxide.Plugins
         /// </summary>
         private void LoadVersionConfig()
         {
-            _pluginConfig = Config.ReadObject<PluginConfig>();
-
-            if (_pluginConfig.ConfigVersion == null)
+            try
             {
-                PrintWarning("Config failed to load correctly. Backing up to ClanClothing.error.json and using default config");
-                Config.WriteObject(_pluginConfig, true, Interface.Oxide.ConfigDirectory+ "/ClanClothing.error.json");
+                _pluginConfig = Config.ReadObject<PluginConfig>();
+
+                if (_pluginConfig.ConfigVersion == null)
+                {
+                    PrintWarning("Config failed to load correctly. Backing up to ClanClothing.error.json and using default config");
+                    Config.WriteObject(_pluginConfig, true, Interface.Oxide.ConfigDirectory + "/ClanClothing.error.json");
+                    _pluginConfig = DefaultConfig();
+                }
+            }
+            catch
+            {
                 _pluginConfig = DefaultConfig();
             }
 

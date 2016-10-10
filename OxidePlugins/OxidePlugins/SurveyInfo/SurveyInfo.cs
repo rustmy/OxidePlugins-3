@@ -165,12 +165,19 @@ namespace Oxide.Plugins
 
         private void LoadVersionedConfig()
         {
-            _pluginConfig = Config.ReadObject<PluginConfig>();
-
-            if (_pluginConfig.ConfigVersion == null)
+            try
             {
-                PrintWarning("Config failed to load correctly. Backing up to SurveyInfo.error.json and using default config");
-                Config.WriteObject(_pluginConfig, true, Interface.Oxide.ConfigDirectory + "/SurveyInfo.error.json");
+                _pluginConfig = Config.ReadObject<PluginConfig>();
+
+                if (_pluginConfig.ConfigVersion == null)
+                {
+                    PrintWarning("Config failed to load correctly. Backing up to SurveyInfo.error.json and using default config");
+                    Config.WriteObject(_pluginConfig, true, Interface.Oxide.ConfigDirectory + "/SurveyInfo.error.json");
+                    _pluginConfig = DefaultConfig();
+                }
+            }
+            catch
+            {
                 _pluginConfig = DefaultConfig();
             }
 
