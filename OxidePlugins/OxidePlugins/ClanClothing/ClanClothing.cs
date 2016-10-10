@@ -578,6 +578,7 @@ namespace Oxide.Plugins
         }
         #endregion
 
+        // ReSharper disable once UnusedMember.Local
         private void SendHelpText(BasePlayer player)
         {
             PrintToChat(player, @"<color=yellow>/cc</color> - Check if you can afford clan clothing\n
