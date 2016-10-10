@@ -29,7 +29,7 @@ namespace Oxide.Plugins
         /// ////////////////////////////////////////////////////////////////////////
         private void Loaded()
         {
-            _storedData = Interface.Oxide.DataFileSystem.ReadObject<StoredData>("AutoCodes");
+            _storedData = Interface.Oxide.DataFileSystem.ReadObject<StoredData>("AutoCodeLock");
 
             permission.RegisterPermission(UsePermission, this);
             LoadVersionedConfig();
@@ -146,7 +146,7 @@ namespace Oxide.Plugins
                     break;
             }
 
-            Interface.Oxide.DataFileSystem.WriteObject("AutoCodes", _storedData);
+            Interface.Oxide.DataFileSystem.WriteObject("AutoCodeLock", _storedData);
         }
 
         ////////////////////////////////////////////////////////////////////////
