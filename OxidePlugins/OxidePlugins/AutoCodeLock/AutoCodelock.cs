@@ -51,7 +51,8 @@ namespace Oxide.Plugins
                 ["InvalidCode"] = "Your code '{0}' is not valid",
                 ["CodeSet"] = "You have set your codelock code to {0}",
                 ["HowToSet"] = "To set your codelock code type /ac 1234",
-                ["CanNotAfford"] = "You can not afford to use AutoCodelock"
+                ["CanNotAfford"] = "You can not afford to use AutoCodelock",
+                ["ParseFailed"] = "Your code of {0} failed to be parse correctly."
             }, this);
         }
 
@@ -272,12 +273,16 @@ namespace Oxide.Plugins
             _whitelistField.SetValue(lockentity, whitelist);
 
             //Retreive the code for the player and set it on the codelock
-            string code = SaveFormatToCode(_storedData.PlayerCodes[player.userID]);
-            if (!string.IsNullOrEmpty(code))
+            string code = SaveFormatToCode(_storedData.PlayerCodes[player.userID]) ?? "";
+            if (ValidCode(code))
             {
                 CodeLock @lock = lockentity.GetComponent<CodeLock>();
                 _codelockField.SetValue(@lock, code);
                 @lock.SetFlag(BaseEntity.Flags.Locked, true);
+            }
+            else
+            {
+                PrintToChat(player, $"{_pluginConfig.Prefix} {Lang("ParseFailed", player.UserIDString, code)}");
             }
 
             //Add the codelock to the door

@@ -51,7 +51,16 @@ namespace Oxide.Plugins
         private void LoadVersionConfig()
         {
             _pluginConfig = Config.ReadObject<PluginConfig>();
-            Config.WriteObject(_pluginConfig, true);
+
+            if (_pluginConfig.ConfigVersion == null)
+            {
+                PrintWarning("Config failed to load correctly. Using default config");
+                _pluginConfig = DefaultConfig();
+            }
+            else
+            {
+                Config.WriteObject(_pluginConfig, true);
+            }
         }
 
         /// <summary>
