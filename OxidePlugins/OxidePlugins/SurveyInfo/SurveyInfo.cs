@@ -170,7 +170,7 @@ namespace Oxide.Plugins
             if (_pluginConfig.ConfigVersion == null)
             {
                 PrintWarning("Config failed to load correctly. Backing up to SurveyInfo.error.json and using default config");
-                Config.WriteObject(_pluginConfig, true, Interface.Oxide.ConfigDirectory + "/AutoCodeLock.error.json");
+                Config.WriteObject(_pluginConfig, true, Interface.Oxide.ConfigDirectory + "/SurveyInfo.error.json");
                 _pluginConfig = DefaultConfig();
             }
 
