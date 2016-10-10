@@ -54,7 +54,8 @@ namespace Oxide.Plugins
 
             if (_pluginConfig.ConfigVersion == null)
             {
-                PrintWarning("Config failed to load correctly. Using default config");
+                PrintWarning("Config failed to load correctly. Backing up to ClanClothing.error.json and using default config");
+                Config.WriteObject(_pluginConfig, true, Interface.Oxide.ConfigDirectory+ "/ClanClothing.error.json");
                 _pluginConfig = DefaultConfig();
             }
 
