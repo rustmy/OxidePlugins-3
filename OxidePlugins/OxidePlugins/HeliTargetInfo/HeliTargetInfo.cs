@@ -49,7 +49,7 @@ namespace Oxide.Plugins
         {
             return new PluginConfig
             {
-                Prefix = "[<color=yellow>HeliTarget Info</color>]",
+                Prefix = "[<color=yellow>Heli Target Info</color>]",
                 Cooldown = new TimeSpan(0, 0, 5, 0)
             };
         }

@@ -79,7 +79,7 @@ namespace Oxide.Plugins
         {
             return new PluginConfig
             {
-                Prefix = "[<color=yellow>AutoCode</color>]",
+                Prefix = "[<color=yellow>Auto CodeLock</color>]",
                 UsePermission = false,
                 UseCost = true,
                 UseItemCost = true,

@@ -408,7 +408,7 @@ namespace Oxide.Plugins
         #region UI
         private const string SurveyContainerName = "SurveyInfo_SurveyContainer";
         private const string GiveToContainerName = "SurveyInfo_GiveToContainer";
-        private const string MouseBugFixContainerName = "SurveyInfo_KeepMouseFromReseting";
+        private const string MouseBugFixContainerName = "SurveyInfo_KeepMouseFromResetting";
 
         #region Survey Data UI
         //////////////////////////////////////////////////////////////////////////////////////
@@ -998,7 +998,7 @@ namespace Oxide.Plugins
         private class PluginConfig
         {
             #region Class Fields
-            public string Prefix = "[<color=yellow>SurveyInfo</color>]";
+            public string Prefix = "[<color=yellow>Survey Info</color>]";
             public float SaveIntervalInSeconds = 600f;
             public float SurveyIdDisplayLengthInSeconds = 150f;
             public bool UsePermission = false;
