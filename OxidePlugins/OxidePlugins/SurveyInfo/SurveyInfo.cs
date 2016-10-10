@@ -83,63 +83,6 @@ namespace Oxide.Plugins
             }, this);
         }
 
-        #region Gather Manager Setup
-        //////////////////////////////////////////////////////////////////////////////////////
-        /// <summary>
-        /// Recalculates the BestPossibleSurveyScore using the data contained in gather manager
-        /// </summary>
-        /// //////////////////////////////////////////////////////////////////////////////////////
-        // ReSharper disable once UnusedMember.Local
-        private void OnServerInitialized()
-        {
-            // If gather manager exists using it to calculate the best score. Load the Survey Resource Modifiers from it's config
-            if (GatherManager == null) return;
-
-            Dictionary<string, object> defaultSurveyResourceModifiers = new Dictionary<string, object>();
-            Dictionary<string, object> configSurveyResourceModifiers = GetConfigValue(GatherManager, "Options", "SurveyResourceModifiers", defaultSurveyResourceModifiers);
-            Dictionary<string, float> surveyResourceModifiers = new Dictionary<string, float>();
-
-            //Load the Data from the GatherManager config into SurveyResourceModifiers
-            foreach (var entry in configSurveyResourceModifiers)
-            {
-                float rate;
-                if (!float.TryParse(entry.Value.ToString(), out rate)) continue;
-                surveyResourceModifiers.Add(entry.Key, rate);
-            }
-
-            //If GatherManager is present but the SurveyResourceModifier contained no entrys don't update the score
-            if (surveyResourceModifiers.Count == 0) return;
-
-            //Loop over all the items and calculate their new survey score
-            int newBestScore = 0;
-            foreach (SurveyLootItemIdEnum item in Enum.GetValues(typeof(SurveyLootItemIdEnum)))
-            {
-                double gatherManagerMulitiplier = 1;
-                float val;
-                string itemName = ItemManager.FindItemDefinition((int)item).displayName.english;
-
-                if (surveyResourceModifiers.TryGetValue(itemName, out val))
-                    gatherManagerMulitiplier = val;
-                else if (surveyResourceModifiers.TryGetValue("*", out val))
-                    gatherManagerMulitiplier = val;
-
-                if (item != SurveyLootItemIdEnum.HighQualityMetal) //default max amount of 5
-                {
-                    newBestScore += (int)(gatherManagerMulitiplier * 5);
-                }
-                else //HQM default max of 1
-                {
-                    newBestScore += (int)(gatherManagerMulitiplier) * 5;
-                }
-
-                //All items best score is 5 by default
-            }
-
-            _bestPossibleSurveyScore = newBestScore;
-        }
-
-        #endregion
-
         protected override void LoadDefaultConfig()
         {
             PrintWarning("Loading Default Config");
@@ -249,6 +192,63 @@ namespace Oxide.Plugins
                 CuiHelper.DestroyUi(player, MouseBugFixContainerName);
             }
         }
+
+        #region Gather Manager Setup
+        //////////////////////////////////////////////////////////////////////////////////////
+        /// <summary>
+        /// Recalculates the BestPossibleSurveyScore using the data contained in gather manager
+        /// </summary>
+        /// //////////////////////////////////////////////////////////////////////////////////////
+        // ReSharper disable once UnusedMember.Local
+        private void OnServerInitialized()
+        {
+            // If gather manager exists using it to calculate the best score. Load the Survey Resource Modifiers from it's config
+            if (GatherManager == null) return;
+
+            Dictionary<string, object> defaultSurveyResourceModifiers = new Dictionary<string, object>();
+            Dictionary<string, object> configSurveyResourceModifiers = GetConfigValue(GatherManager, "Options", "SurveyResourceModifiers", defaultSurveyResourceModifiers);
+            Dictionary<string, float> surveyResourceModifiers = new Dictionary<string, float>();
+
+            //Load the Data from the GatherManager config into SurveyResourceModifiers
+            foreach (var entry in configSurveyResourceModifiers)
+            {
+                float rate;
+                if (!float.TryParse(entry.Value.ToString(), out rate)) continue;
+                surveyResourceModifiers.Add(entry.Key, rate);
+            }
+
+            //If GatherManager is present but the SurveyResourceModifier contained no entrys don't update the score
+            if (surveyResourceModifiers.Count == 0) return;
+
+            //Loop over all the items and calculate their new survey score
+            int newBestScore = 0;
+            foreach (SurveyLootItemIdEnum item in Enum.GetValues(typeof(SurveyLootItemIdEnum)))
+            {
+                double gatherManagerMulitiplier = 1;
+                float val;
+                string itemName = ItemManager.FindItemDefinition((int)item).displayName.english;
+
+                if (surveyResourceModifiers.TryGetValue(itemName, out val))
+                    gatherManagerMulitiplier = val;
+                else if (surveyResourceModifiers.TryGetValue("*", out val))
+                    gatherManagerMulitiplier = val;
+
+                if (item != SurveyLootItemIdEnum.HighQualityMetal) //default max amount of 5
+                {
+                    newBestScore += (int)(gatherManagerMulitiplier * 5);
+                }
+                else //HQM default max of 1
+                {
+                    newBestScore += (int)(gatherManagerMulitiplier) * 5;
+                }
+
+                //All items best score is 5 by default
+            }
+
+            _bestPossibleSurveyScore = newBestScore;
+        }
+
+        #endregion
 
         #endregion
 
