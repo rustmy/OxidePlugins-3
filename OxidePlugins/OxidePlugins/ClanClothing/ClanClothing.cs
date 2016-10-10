@@ -57,10 +57,8 @@ namespace Oxide.Plugins
                 PrintWarning("Config failed to load correctly. Using default config");
                 _pluginConfig = DefaultConfig();
             }
-            else
-            {
-                Config.WriteObject(_pluginConfig, true);
-            }
+
+            Config.WriteObject(_pluginConfig, true);
         }
 
         /// <summary>
