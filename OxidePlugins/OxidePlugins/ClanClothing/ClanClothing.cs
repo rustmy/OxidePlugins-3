@@ -81,7 +81,8 @@ namespace Oxide.Plugins
                 ["CanNotAfford"] = "You <color=red>CAN NOT</color> afford this",
                 ["NoCost"] = "There is no cost to claim Clan Clothing",
                 ["HowToClaim"] = "type <color=yellow>/{0}</color> to claim your clans clothing",
-                ["HowToView"] = "type <color=yellow>/{0}</color> to view your clans clothing"
+                ["HowToView"] = "type <color=yellow>/{0}</color> to view your clans clothing",
+                ["NoClothingAdded"] = "No clothing items were added. Clan clothing will not be saved"
             }, this);
         }
 
@@ -249,6 +250,12 @@ namespace Oxide.Plugins
                 {
                     _storedData.ClanClothing[playerClanTag].Add(new ClothingItem(item.info.itemid, item.skin));
                 }
+            }
+
+            if(_storedData.ClanClothing[playerClanTag].Count == 0)
+            {
+                PrintToChat($"{_pluginConfig.Prefix} {Lang("NoClothingAdded", player.UserIDString)}");
+                return;
             }
 
             PrintToChat(player, $"{_pluginConfig.Prefix} {Lang("Add", player.UserIDString)}");

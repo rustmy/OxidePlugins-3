@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using ProtoBuf;
 
 // ReSharper disable once CheckNamespace
 namespace Oxide.Plugins
@@ -116,7 +117,7 @@ namespace Oxide.Plugins
         /// ///////////////////////////////////////////////////////////////
         private void DisplayCupboardData(BuildingPrivlidge privilege, BasePlayer player)
         {
-            foreach (ProtoBuf.PlayerNameID user in privilege.authorizedPlayers)
+            foreach (PlayerNameID user in privilege.authorizedPlayers)
             {
                 if (user.userid != player.userID)
                 {
@@ -127,7 +128,6 @@ namespace Oxide.Plugins
         #endregion
 
         #region Helper Methods
-
         //////////////////////////////////////////////////////////////////////////////////////
         /// <summary>
         /// @credit to Exel80 - code from EasyVote
@@ -163,7 +163,6 @@ namespace Oxide.Plugins
 
             return false;
         }
-
         #endregion
 
         #region Classes
