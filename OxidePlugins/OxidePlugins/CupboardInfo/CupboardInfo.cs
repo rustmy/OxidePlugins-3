@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using ProtoBuf;
+using Oxide.Core;
 
 // ReSharper disable once CheckNamespace
 namespace Oxide.Plugins
@@ -34,6 +35,32 @@ namespace Oxide.Plugins
             permission.RegisterPermission(UsePermission, this);
         }
 
+        ////////////////////////////////////////////////////////////////////////
+        /// <summary>
+        /// Used to load a versioned config
+        /// </summary>
+        /// ////////////////////////////////////////////////////////////////////////
+        private void LoadVersionedConfig()
+        {
+            try
+            {
+                _pluginConfig = Config.ReadObject<PluginConfig>();
+
+                if (_pluginConfig.ConfigVersion == null)
+                {
+                    PrintWarning("Config failed to load correctly. Backing up to CupboardInfo.error.json and using default config");
+                    Config.WriteObject(_pluginConfig, true, Interface.Oxide.ConfigDirectory + "/CupboardInfo.error.json");
+                    _pluginConfig = DefaultConfig();
+                }
+            }
+            catch
+            {
+                _pluginConfig = DefaultConfig();
+            }
+
+            Config.WriteObject(_pluginConfig, true);
+        }
+
         ///////////////////////////////////////////////////////////////
         /// <summary>
         /// Load the plugins default config
@@ -54,9 +81,11 @@ namespace Oxide.Plugins
             return new PluginConfig
             {
                 Prefix = "[<color=yellow>Cupboard Info</color>]",
-                UsePermission = false
+                UsePermission = false,
+                ConfigVersion = Version.ToString()
             };
         }
+
         #endregion
 
         #region Oxide Hooks
@@ -175,6 +204,7 @@ namespace Oxide.Plugins
         {
             public string Prefix;
             public bool UsePermission;
+            public string ConfigVersion;
         }
         #endregion
     }

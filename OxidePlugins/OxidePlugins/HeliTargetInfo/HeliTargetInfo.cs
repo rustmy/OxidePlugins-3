@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Oxide.Core;
+using System;
 using System.Collections.Generic;
 
 // ReSharper disable once CheckNamespace
@@ -29,6 +30,32 @@ namespace Oxide.Plugins
             }, this);
         }
 
+        ////////////////////////////////////////////////////////////////////////
+        /// <summary>
+        /// Used to load a versioned config
+        /// </summary>
+        /// ////////////////////////////////////////////////////////////////////////
+        private void LoadVersionedConfig()
+        {
+            try
+            {
+                _pluginConfig = Config.ReadObject<PluginConfig>();
+
+                if (_pluginConfig.ConfigVersion == null)
+                {
+                    PrintWarning("Config failed to load correctly. Backing up to HeliTargetInfo.error.json and using default config");
+                    Config.WriteObject(_pluginConfig, true, Interface.Oxide.ConfigDirectory + "/HeliTargetInfo.error.json");
+                    _pluginConfig = DefaultConfig();
+                }
+            }
+            catch
+            {
+                _pluginConfig = DefaultConfig();
+            }
+
+            Config.WriteObject(_pluginConfig, true);
+        }
+
         //////////////////////////////////////////////////////////////////////////////////////
         /// <summary>
         /// Loads the plugins default config
@@ -51,7 +78,8 @@ namespace Oxide.Plugins
             return new PluginConfig
             {
                 Prefix = "[<color=yellow>Heli Target Info</color>]",
-                Cooldown = new TimeSpan(0, 0, 5, 0)
+                Cooldown = new TimeSpan(0, 0, 5, 0),
+                ConfigVersion = Version.ToString()
             };
         }
         #endregion
@@ -101,6 +129,7 @@ namespace Oxide.Plugins
         {
             public string Prefix;
             public TimeSpan Cooldown;
+            public string ConfigVersion;
         }
     }
 }
