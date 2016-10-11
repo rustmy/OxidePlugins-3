@@ -410,12 +410,12 @@ namespace Oxide.Plugins
         /// ////////////////////////////////////////////////////////////////////////
         class PluginConfig
         {
-            public string Prefix;
+            public string Prefix { get; set; }
             public bool Permission { get; set; }
-            public bool UseCost;
-            public bool UseItemCost;
-            public List<Hash<string, int>> ItemCostList;
-            public string ConfigVersion;
+            public bool UseCost { get; set; }
+            public bool UseItemCost { get; set; }
+            public List<Hash<string, int>> ItemCostList { get; set; }
+            public string ConfigVersion { get; set; }
         }
 
         // ReSharper disable once ClassNeverInstantiated.Local

@@ -6,6 +6,7 @@ using UnityEngine;
 using Oxide.Game.Rust.Cui;
 using Oxide.Core.Plugins;
 
+
 // ReSharper disable SpecifyACultureInStringConversionExplicitly
 
 // ReSharper disable once CheckNamespace
@@ -96,7 +97,7 @@ namespace Oxide.Plugins
                 Prefix = "[<color=yellow>Survey Info</color>]",
                 SaveIntervalInSeconds = 600f,
                 SurveyIdDisplayLengthInSeconds = 150f,
-                Permission = false,
+                UsePermission = false,
                 UiColors = new UIColors(),
                 SurveyUiConfig = new SurveyDataUIConfig(),
                 GiveToUiConfig = new GiveToUIConfig(),
@@ -415,7 +416,7 @@ namespace Oxide.Plugins
         /// //////////////////////////////////////////////////////////////////////////////////////
         private bool CheckPermission(BasePlayer player, string perm, bool showText)
         {
-            if (!_pluginConfig.Permission || permission.UserHasPermission(player.UserIDString, perm))
+            if (!_pluginConfig.UsePermission || permission.UserHasPermission(player.UserIDString, perm))
             {
                 return true;
             }
@@ -474,7 +475,7 @@ namespace Oxide.Plugins
 
             InitializeDataUi(player);
 
-            CuiElementContainer mouseBugFixContainer = SurveyInfoUI.CreateElementContainer(MouseBugFixContainerName, "0 0 0 0", "0 0", ".01 .01");
+            CuiElementContainer mouseBugFixContainer = UICreator.CreateElementContainer(MouseBugFixContainerName, "0 0 0 0", "0 0", ".01 .01", 0f, 0f);
             CuiHelper.AddUi(player, mouseBugFixContainer);
         }
 
@@ -486,8 +487,8 @@ namespace Oxide.Plugins
         /// //////////////////////////////////////////////////////////////////////////////////////
         private void InitializeDataUi(BasePlayer player)
         {
-            CuiElementContainer container = SurveyInfoUI.CreateElementContainer(SurveyContainerName, _pluginConfig.UiColors.SurveyDataContainer, _pluginConfig.SurveyUiConfig.SurveyDataContainerMin, _pluginConfig.SurveyUiConfig.SurveyDataContainerMax);
-           
+            CuiElementContainer container = UICreator.CreateElementContainer(SurveyContainerName, _pluginConfig.UiColors.SurveyDataContainer, _pluginConfig.SurveyUiConfig.SurveyDataContainerMin, _pluginConfig.SurveyUiConfig.SurveyDataContainerMax, .05f, .05f);
+
 
             CreateSurveyDataUiHeader(ref container, player);
             CreateSurveyDataUi(ref container, player);
@@ -508,20 +509,20 @@ namespace Oxide.Plugins
         private void CreateSurveyDataUiHeader(ref CuiElementContainer container, BasePlayer player)
         {
             SurveyDataUIConfig conf = _pluginConfig.SurveyUiConfig; //Provide quick access to the SurveyDataUIConfig
-            SurveyInfoUI.CreateLabel(ref container, SurveyContainerName, _pluginConfig.UiColors.Label, Lang("Id", player.UserIDString), conf.SurveyDataTextSize, conf.LabelIdXMin + " " + conf.SurveyDataTopHeadingYMin, conf.LabelIdXMax + " " + conf.SurveyDataTopHeadingYMax);
-            SurveyInfoUI.CreateLabel(ref container, SurveyContainerName, _pluginConfig.UiColors.Label, Lang("Stones", player.UserIDString), conf.SurveyDataTextSize, conf.LabelStonesXMin + " " + conf.SurveyDataTopHeadingYMin, conf.LabelStonesXMax + " " + conf.SurveyDataTopHeadingYMax);
-            SurveyInfoUI.CreateLabel(ref container, SurveyContainerName, _pluginConfig.UiColors.Label, Lang("Metal", player.UserIDString), conf.SurveyDataTextSize, conf.LabelMetalOreXMin + " " + conf.SurveyDataTopHeadingYMin, conf.LabelMetalOreXMax + " " + conf.SurveyDataTopHeadingYMax);
-            SurveyInfoUI.CreateLabel(ref container, SurveyContainerName, _pluginConfig.UiColors.Label, Lang("Ore", player.UserIDString), conf.SurveyDataTextSize, conf.LabelMetalOreXMin + " " + conf.SurveyDataMiddleHeadingYMin, conf.LabelMetalOreXMax + " " + conf.SurveyDataMiddleHeadingYMax);
-            SurveyInfoUI.CreateLabel(ref container, SurveyContainerName, _pluginConfig.UiColors.Label, Lang("Metal", player.UserIDString), conf.SurveyDataTextSize, conf.LabelMetalFragXMin + " " + conf.SurveyDataTopHeadingYMin, conf.LabelMetalFragXMax + " " + conf.SurveyDataTopHeadingYMax);
-            SurveyInfoUI.CreateLabel(ref container, SurveyContainerName, _pluginConfig.UiColors.Label, Lang("Frags", player.UserIDString), conf.SurveyDataTextSize, conf.LabelMetalFragXMin + " " + conf.SurveyDataMiddleHeadingYMin, conf.LabelMetalFragXMax + " " + conf.SurveyDataMiddleHeadingYMax);
-            SurveyInfoUI.CreateLabel(ref container, SurveyContainerName, _pluginConfig.UiColors.Label, Lang("Sulfur", player.UserIDString), conf.SurveyDataTextSize, conf.LabelSulfurOreXMin + " " + conf.SurveyDataTopHeadingYMin, conf.LabelSulfurOreXMax + " " + conf.SurveyDataTopHeadingYMax);
-            SurveyInfoUI.CreateLabel(ref container, SurveyContainerName, _pluginConfig.UiColors.Label, Lang("Ore", player.UserIDString), conf.SurveyDataTextSize, conf.LabelSulfurOreXMin + " " + conf.SurveyDataMiddleHeadingYMin, conf.LabelSulfurOreXMax + " " + conf.SurveyDataMiddleHeadingYMax);
-            SurveyInfoUI.CreateLabel(ref container, SurveyContainerName, _pluginConfig.UiColors.Label, Lang("High", player.UserIDString), conf.SurveyDataTextSize, conf.LabelHqmXMin + " " + conf.SurveyDataTopHeadingYMin, conf.LabelHqmXMax + " " + conf.SurveyDataTopHeadingYMax);
-            SurveyInfoUI.CreateLabel(ref container, SurveyContainerName, _pluginConfig.UiColors.Label, Lang("Quality", player.UserIDString), conf.SurveyDataTextSize, conf.LabelHqmXMin + " " + conf.SurveyDataMiddleHeadingYMin, conf.LabelHqmXMax + " " + conf.SurveyDataMiddleHeadingYMax);
-            SurveyInfoUI.CreateLabel(ref container, SurveyContainerName, _pluginConfig.UiColors.Label, Lang("Metal", player.UserIDString), conf.SurveyDataTextSize, conf.LabelHqmXMin + " " + conf.SurveyDataBottomHeadingYMin, conf.LabelHqmXMax + " " + conf.SurveyDataBottomHeadingYMax);
-            SurveyInfoUI.CreateLabel(ref container, SurveyContainerName, _pluginConfig.UiColors.Label, Lang("Survey", player.UserIDString), conf.SurveyDataTextSize, conf.LabelScoreXMin + " " + conf.SurveyDataTopHeadingYMin, conf.LabelScoreXMax + " " + conf.SurveyDataTopHeadingYMax);
-            SurveyInfoUI.CreateLabel(ref container, SurveyContainerName, _pluginConfig.UiColors.Label, Lang("Score", player.UserIDString), conf.SurveyDataTextSize, conf.LabelScoreXMin + " " + conf.SurveyDataMiddleHeadingYMin, conf.LabelScoreXMax + " " + conf.SurveyDataMiddleHeadingYMax);
-            SurveyInfoUI.CreateButton(ref container, SurveyContainerName, _pluginConfig.UiColors.ButtonClose, Lang("Close", player.UserIDString), conf.SurveyDataTextSize, conf.ButtonCloseMin, conf.ButtonCloseMax, "si.close");
+            UICreator.CreateLabel(ref container, SurveyContainerName, _pluginConfig.UiColors.Label, Lang("Id", player.UserIDString), conf.SurveyDataTextSize, conf.LabelIdXMin + " " + conf.SurveyDataTopHeadingYMin, conf.LabelIdXMax + " " + conf.SurveyDataTopHeadingYMax);
+            UICreator.CreateLabel(ref container, SurveyContainerName, _pluginConfig.UiColors.Label, Lang("Stones", player.UserIDString), conf.SurveyDataTextSize, conf.LabelStonesXMin + " " + conf.SurveyDataTopHeadingYMin, conf.LabelStonesXMax + " " + conf.SurveyDataTopHeadingYMax);
+            UICreator.CreateLabel(ref container, SurveyContainerName, _pluginConfig.UiColors.Label, Lang("Metal", player.UserIDString), conf.SurveyDataTextSize, conf.LabelMetalOreXMin + " " + conf.SurveyDataTopHeadingYMin, conf.LabelMetalOreXMax + " " + conf.SurveyDataTopHeadingYMax);
+            UICreator.CreateLabel(ref container, SurveyContainerName, _pluginConfig.UiColors.Label, Lang("Ore", player.UserIDString), conf.SurveyDataTextSize, conf.LabelMetalOreXMin + " " + conf.SurveyDataMiddleHeadingYMin, conf.LabelMetalOreXMax + " " + conf.SurveyDataMiddleHeadingYMax);
+            UICreator.CreateLabel(ref container, SurveyContainerName, _pluginConfig.UiColors.Label, Lang("Metal", player.UserIDString), conf.SurveyDataTextSize, conf.LabelMetalFragXMin + " " + conf.SurveyDataTopHeadingYMin, conf.LabelMetalFragXMax + " " + conf.SurveyDataTopHeadingYMax);
+            UICreator.CreateLabel(ref container, SurveyContainerName, _pluginConfig.UiColors.Label, Lang("Frags", player.UserIDString), conf.SurveyDataTextSize, conf.LabelMetalFragXMin + " " + conf.SurveyDataMiddleHeadingYMin, conf.LabelMetalFragXMax + " " + conf.SurveyDataMiddleHeadingYMax);
+            UICreator.CreateLabel(ref container, SurveyContainerName, _pluginConfig.UiColors.Label, Lang("Sulfur", player.UserIDString), conf.SurveyDataTextSize, conf.LabelSulfurOreXMin + " " + conf.SurveyDataTopHeadingYMin, conf.LabelSulfurOreXMax + " " + conf.SurveyDataTopHeadingYMax);
+            UICreator.CreateLabel(ref container, SurveyContainerName, _pluginConfig.UiColors.Label, Lang("Ore", player.UserIDString), conf.SurveyDataTextSize, conf.LabelSulfurOreXMin + " " + conf.SurveyDataMiddleHeadingYMin, conf.LabelSulfurOreXMax + " " + conf.SurveyDataMiddleHeadingYMax);
+            UICreator.CreateLabel(ref container, SurveyContainerName, _pluginConfig.UiColors.Label, Lang("High", player.UserIDString), conf.SurveyDataTextSize, conf.LabelHqmXMin + " " + conf.SurveyDataTopHeadingYMin, conf.LabelHqmXMax + " " + conf.SurveyDataTopHeadingYMax);
+            UICreator.CreateLabel(ref container, SurveyContainerName, _pluginConfig.UiColors.Label, Lang("Quality", player.UserIDString), conf.SurveyDataTextSize, conf.LabelHqmXMin + " " + conf.SurveyDataMiddleHeadingYMin, conf.LabelHqmXMax + " " + conf.SurveyDataMiddleHeadingYMax);
+            UICreator.CreateLabel(ref container, SurveyContainerName, _pluginConfig.UiColors.Label, Lang("Metal", player.UserIDString), conf.SurveyDataTextSize, conf.LabelHqmXMin + " " + conf.SurveyDataBottomHeadingYMin, conf.LabelHqmXMax + " " + conf.SurveyDataBottomHeadingYMax);
+            UICreator.CreateLabel(ref container, SurveyContainerName, _pluginConfig.UiColors.Label, Lang("Survey", player.UserIDString), conf.SurveyDataTextSize, conf.LabelScoreXMin + " " + conf.SurveyDataTopHeadingYMin, conf.LabelScoreXMax + " " + conf.SurveyDataTopHeadingYMax);
+            UICreator.CreateLabel(ref container, SurveyContainerName, _pluginConfig.UiColors.Label, Lang("Score", player.UserIDString), conf.SurveyDataTextSize, conf.LabelScoreXMin + " " + conf.SurveyDataMiddleHeadingYMin, conf.LabelScoreXMax + " " + conf.SurveyDataMiddleHeadingYMax);
+            UICreator.CreateButton(ref container, SurveyContainerName, _pluginConfig.UiColors.ButtonClose, Lang("Close", player.UserIDString), conf.SurveyDataTextSize, conf.ButtonCloseMin, conf.ButtonCloseMax, "si.close");
         }
 
         //////////////////////////////////////////////////////////////////////////////////////
@@ -548,27 +549,27 @@ namespace Oxide.Plugins
             {
                 string yMin = (conf.SurveyDataRecordStartingYMin - row * conf.SurveyDataRecordYSpacing).ToString();
                 string yMax = (conf.SurveyDataRecordStartingYMax - row * conf.SurveyDataRecordYSpacing).ToString();
-                SurveyInfoUI.CreateLabel(ref container, SurveyContainerName, _pluginConfig.UiColors.Label, playerData[recordIndex].SurveyId.ToString(), conf.SurveyDataTextSize, conf.LabelIdXMin + " " + yMin, conf.LabelIdXMax + " " + yMax);
-                SurveyInfoUI.CreateLabel(ref container, SurveyContainerName, _pluginConfig.UiColors.Label, playerData[recordIndex].GetAmountByItemId((int)SurveyLootItemIdEnum.Stones).ToString(), conf.SurveyDataTextSize, conf.LabelStonesXMin + " " + yMin, conf.LabelStonesXMax + " " + yMax);
-                SurveyInfoUI.CreateLabel(ref container, SurveyContainerName, _pluginConfig.UiColors.Label, playerData[recordIndex].GetAmountByItemId((int)SurveyLootItemIdEnum.MetalOre).ToString(), conf.SurveyDataTextSize, conf.LabelMetalOreXMin + " " + yMin, conf.LabelMetalOreXMax + " " + yMax);
-                SurveyInfoUI.CreateLabel(ref container, SurveyContainerName, _pluginConfig.UiColors.Label, playerData[recordIndex].GetAmountByItemId((int)SurveyLootItemIdEnum.MetalFrag).ToString(), conf.SurveyDataTextSize, conf.LabelMetalFragXMin + " " + yMin, conf.LabelMetalFragXMax + " " + yMax);
-                SurveyInfoUI.CreateLabel(ref container, SurveyContainerName, _pluginConfig.UiColors.Label, playerData[recordIndex].GetAmountByItemId((int)SurveyLootItemIdEnum.SulfurOre).ToString(), conf.SurveyDataTextSize, conf.LabelSulfurOreXMin + " " + yMin, conf.LabelSulfurOreXMax + " " + yMax);
-                SurveyInfoUI.CreateLabel(ref container, SurveyContainerName, _pluginConfig.UiColors.Label, playerData[recordIndex].GetAmountByItemId((int)SurveyLootItemIdEnum.HighQualityMetal).ToString(), conf.SurveyDataTextSize, conf.LabelHqmXMin + " " + yMin, conf.LabelHqmXMax + " " + yMax);
-                SurveyInfoUI.CreateLabel(ref container, SurveyContainerName, _pluginConfig.UiColors.Label, playerData[recordIndex].Score + "%", conf.SurveyDataTextSize, conf.LabelScoreXMin + " " + yMin, conf.LabelScoreXMax + " " + yMax);
-                SurveyInfoUI.CreateButton(ref container, SurveyContainerName, _pluginConfig.UiColors.ButtonLookup, Lang("Lookup", player.UserIDString), conf.SurveyDataTextSize, conf.ButtonLookupXMin + " " + yMin, conf.ButtonLookupXMax + " " + yMax, $"si.lookup " + playerData[recordIndex].SurveyId);
-                SurveyInfoUI.CreateButton(ref container, SurveyContainerName, _pluginConfig.UiColors.ButtonRemove, Lang("Remove", player.UserIDString), conf.SurveyDataTextSize, conf.ButtonRemoveXMin + " " + yMin, conf.ButtonRemoveXMax + " " + yMax, $"si.remove " + playerData[recordIndex].SurveyId);
-                SurveyInfoUI.CreateButton(ref container, SurveyContainerName, _pluginConfig.UiColors.ButtonGiveTo, Lang("GiveTo", player.UserIDString), conf.SurveyDataTextSize, conf.ButtonGiveToXMin + " " + yMin, conf.ButtonGiveToXMax + " " + yMax, $"si.opengiveto  " + playerData[recordIndex].SurveyId);
+                UICreator.CreateLabel(ref container, SurveyContainerName, _pluginConfig.UiColors.Label, playerData[recordIndex].SurveyId.ToString(), conf.SurveyDataTextSize, conf.LabelIdXMin + " " + yMin, conf.LabelIdXMax + " " + yMax);
+                UICreator.CreateLabel(ref container, SurveyContainerName, _pluginConfig.UiColors.Label, playerData[recordIndex].GetAmountByItemId((int)SurveyLootItemIdEnum.Stones).ToString(), conf.SurveyDataTextSize, conf.LabelStonesXMin + " " + yMin, conf.LabelStonesXMax + " " + yMax);
+                UICreator.CreateLabel(ref container, SurveyContainerName, _pluginConfig.UiColors.Label, playerData[recordIndex].GetAmountByItemId((int)SurveyLootItemIdEnum.MetalOre).ToString(), conf.SurveyDataTextSize, conf.LabelMetalOreXMin + " " + yMin, conf.LabelMetalOreXMax + " " + yMax);
+                UICreator.CreateLabel(ref container, SurveyContainerName, _pluginConfig.UiColors.Label, playerData[recordIndex].GetAmountByItemId((int)SurveyLootItemIdEnum.MetalFrag).ToString(), conf.SurveyDataTextSize, conf.LabelMetalFragXMin + " " + yMin, conf.LabelMetalFragXMax + " " + yMax);
+                UICreator.CreateLabel(ref container, SurveyContainerName, _pluginConfig.UiColors.Label, playerData[recordIndex].GetAmountByItemId((int)SurveyLootItemIdEnum.SulfurOre).ToString(), conf.SurveyDataTextSize, conf.LabelSulfurOreXMin + " " + yMin, conf.LabelSulfurOreXMax + " " + yMax);
+                UICreator.CreateLabel(ref container, SurveyContainerName, _pluginConfig.UiColors.Label, playerData[recordIndex].GetAmountByItemId((int)SurveyLootItemIdEnum.HighQualityMetal).ToString(), conf.SurveyDataTextSize, conf.LabelHqmXMin + " " + yMin, conf.LabelHqmXMax + " " + yMax);
+                UICreator.CreateLabel(ref container, SurveyContainerName, _pluginConfig.UiColors.Label, playerData[recordIndex].Score + "%", conf.SurveyDataTextSize, conf.LabelScoreXMin + " " + yMin, conf.LabelScoreXMax + " " + yMax);
+                UICreator.CreateButton(ref container, SurveyContainerName, _pluginConfig.UiColors.ButtonLookup, Lang("Lookup", player.UserIDString), conf.SurveyDataTextSize, conf.ButtonLookupXMin + " " + yMin, conf.ButtonLookupXMax + " " + yMax, $"si.lookup " + playerData[recordIndex].SurveyId);
+                UICreator.CreateButton(ref container, SurveyContainerName, _pluginConfig.UiColors.ButtonRemove, Lang("Remove", player.UserIDString), conf.SurveyDataTextSize, conf.ButtonRemoveXMin + " " + yMin, conf.ButtonRemoveXMax + " " + yMax, $"si.remove " + playerData[recordIndex].SurveyId);
+                UICreator.CreateButton(ref container, SurveyContainerName, _pluginConfig.UiColors.ButtonGiveTo, Lang("GiveTo", player.UserIDString), conf.SurveyDataTextSize, conf.ButtonGiveToXMin + " " + yMin, conf.ButtonGiveToXMax + " " + yMax, $"si.opengiveto  " + playerData[recordIndex].SurveyId);
                 row++;
             }
 
             if (showPrevPageButton)
             {
-                SurveyInfoUI.CreateButton(ref container, SurveyContainerName, _pluginConfig.UiColors.ButtonPrevPage, Lang("PrevPage", player.UserIDString), conf.SurveyDataTextSize, conf.ButtonDataPrevPageMin, conf.ButtonDataPrevPageMax, "si.prevpage");
+                UICreator.CreateButton(ref container, SurveyContainerName, _pluginConfig.UiColors.ButtonPrevPage, Lang("PrevPage", player.UserIDString), conf.SurveyDataTextSize, conf.ButtonDataPrevPageMin, conf.ButtonDataPrevPageMax, "si.prevpage");
             }
 
             if (showNextPageButton)
             {
-                SurveyInfoUI.CreateButton(ref container, SurveyContainerName, _pluginConfig.UiColors.ButtonNextPage, Lang("NextPage", player.UserIDString), conf.SurveyDataTextSize, conf.ButtonDataNextPageMin, conf.ButtonDataNextPageMax, "si.nextpage");
+                UICreator.CreateButton(ref container, SurveyContainerName, _pluginConfig.UiColors.ButtonNextPage, Lang("NextPage", player.UserIDString), conf.SurveyDataTextSize, conf.ButtonDataNextPageMin, conf.ButtonDataNextPageMax, "si.nextpage");
             }
         }
         #endregion
@@ -586,7 +587,7 @@ namespace Oxide.Plugins
         {
             _playerGiveToUiPage[player.userID] = 0;
 
-            CuiElementContainer giveToContainer = SurveyInfoUI.CreateElementContainer(GiveToContainerName, _pluginConfig.UiColors.GiveToContainer, _pluginConfig.GiveToUiConfig.GiveToContainerMin, _pluginConfig.GiveToUiConfig.GiveToContainerMax);
+            CuiElementContainer giveToContainer = UICreator.CreateElementContainer(GiveToContainerName, _pluginConfig.UiColors.GiveToContainer, _pluginConfig.GiveToUiConfig.GiveToContainerMin, _pluginConfig.GiveToUiConfig.GiveToContainerMax, .05f, .05f);
 
             CreatePlayerListUi(ref giveToContainer, player, recordId);
 
@@ -623,7 +624,7 @@ namespace Oxide.Plugins
                 string xMin = (conf.PlayerButtonStartPositionXMin + (col * conf.PlayerXSpacing)).ToString();
                 string xMax = (conf.PlayerButtonStartPositionXMax + (col * conf.PlayerXSpacing)).ToString();
 
-                SurveyInfoUI.CreateButton(ref container, GiveToContainerName, _pluginConfig.UiColors.ButtonPlayers, activePlayerList[playerIndex].displayName, conf.GiveToPlayersTextSize, xMin + " " + yMin, xMax + " " + yMax, "si.sigiveto " + activePlayerList[playerIndex].userID + " " + recordId);
+                UICreator.CreateButton(ref container, GiveToContainerName, _pluginConfig.UiColors.ButtonPlayers, activePlayerList[playerIndex].displayName, conf.GiveToPlayersTextSize, xMin + " " + yMin, xMax + " " + yMax, "si.sigiveto " + activePlayerList[playerIndex].userID + " " + recordId);
 
                 col = ++col % conf.GiveToPlayersPerRow; //increment col
                 if (playerIndex != 0 && col == 0) row++; //increment row each time col == 0 and it's not the first player
@@ -631,12 +632,12 @@ namespace Oxide.Plugins
 
             if (showPrevPageButton)
             {
-                SurveyInfoUI.CreateButton(ref container, GiveToContainerName, _pluginConfig.UiColors.ButtonPrevPage, Lang("PrevPage", player.UserIDString), conf.GiveToPlayerPageTextSize, conf.ButtonGiveToPrevPageMin, conf.ButtonGiveToPrevPageMax, "si.giverevpage " + recordId);
+                UICreator.CreateButton(ref container, GiveToContainerName, _pluginConfig.UiColors.ButtonPrevPage, Lang("PrevPage", player.UserIDString), conf.GiveToPlayerPageTextSize, conf.ButtonGiveToPrevPageMin, conf.ButtonGiveToPrevPageMax, "si.giverevpage " + recordId);
             }
 
             if (showNextPageButton)
             {
-                SurveyInfoUI.CreateButton(ref container, GiveToContainerName, _pluginConfig.UiColors.ButtonNextPage, Lang("NextPage", player.UserIDString), conf.GiveToPlayerPageTextSize, conf.ButtonGiveToNextPageMin, conf.ButtonGiveToNextPageMax, "si.givenextpage " + recordId);
+                UICreator.CreateButton(ref container, GiveToContainerName, _pluginConfig.UiColors.ButtonNextPage, Lang("NextPage", player.UserIDString), conf.GiveToPlayerPageTextSize, conf.ButtonGiveToNextPageMin, conf.ButtonGiveToNextPageMax, "si.givenextpage " + recordId);
             }
         }
         #endregion
@@ -1048,21 +1049,19 @@ namespace Oxide.Plugins
         /// //////////////////////////////////////////////////////////////////////////////////////
         private class PluginConfig
         {
-            #region Class Fields
-            public string Prefix;
-            public float SaveIntervalInSeconds;
-            public float SurveyIdDisplayLengthInSeconds;
-            public bool Permission { get; set; }
-            public UIColors UiColors;
-            public SurveyDataUIConfig SurveyUiConfig;
-            public GiveToUIConfig GiveToUiConfig;
-            public string ConfigVersion;
-            #endregion
+            public string Prefix { get; set; }
+            public float SaveIntervalInSeconds { get; set; }
+            public float SurveyIdDisplayLengthInSeconds { get; set; }
+            public bool UsePermission { get; set; }
+            public UIColors UiColors { get; set; }
+            public SurveyDataUIConfig SurveyUiConfig { get; set; }
+            public GiveToUIConfig GiveToUiConfig { get; set; }
+            public string ConfigVersion { get; set; }
         }
         #endregion
         #endregion
 
-        #region UI Class
+        #region UICreator Class
         // ReSharper disable once InconsistentNaming
         // ReSharper disable once ClassNeverInstantiated.Local
         //////////////////////////////////////////////////////////////////////////////////////
@@ -1071,19 +1070,19 @@ namespace Oxide.Plugins
         /// UI class for SurveyInfo
         /// </summary>
         /// //////////////////////////////////////////////////////////////////////////////////////
-        class SurveyInfoUI
+        private class UICreator
         {
-            public static CuiElementContainer CreateElementContainer(string panelName, string color, string aMin, string aMax)
+            public static CuiElementContainer CreateElementContainer(string panelName, string color, string aMin, string aMax, float fadeIn, float fadeOut)
             {
                 var newElement = new CuiElementContainer()
                 {
                     {
                         new CuiPanel
                         {
-                            Image = {Color = color , FadeIn = .05f},
+                            Image = {Color = color , FadeIn = fadeIn},
                             RectTransform = {AnchorMin = aMin, AnchorMax = aMax},
                             CursorEnabled = true,
-                            FadeOut = .05f
+                            FadeOut = fadeOut
                         },
                         new CuiElement().Parent = "Hud",
                         panelName

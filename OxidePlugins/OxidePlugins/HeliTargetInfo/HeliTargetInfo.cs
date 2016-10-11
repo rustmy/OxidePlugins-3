@@ -127,9 +127,9 @@ namespace Oxide.Plugins
         /// //////////////////////////////////////////////////////////////////////////////////////
         class PluginConfig
         {
-            public string Prefix;
-            public TimeSpan Cooldown;
-            public string ConfigVersion;
+            public string Prefix { get; set; }
+            public TimeSpan Cooldown { get; set; }
+            public string ConfigVersion { get; set; }
         }
     }
 }

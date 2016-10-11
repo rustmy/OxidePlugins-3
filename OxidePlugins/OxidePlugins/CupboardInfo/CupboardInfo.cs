@@ -202,9 +202,9 @@ namespace Oxide.Plugins
         /// ///////////////////////////////////////////////////////////////
         class PluginConfig
         {
-            public string Prefix;
-            public bool UsePermission;
-            public string ConfigVersion;
+            public string Prefix { get; set; }
+            public bool UsePermission { get; set; }
+            public string ConfigVersion { get; set; }
         }
         #endregion
     }

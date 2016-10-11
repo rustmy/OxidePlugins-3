@@ -626,19 +626,19 @@ namespace Oxide.Plugins
         /// ///////////////////////////////////////////////////////////////
         private class PluginConfig
         {
-            public List<string> ExcludedItems;
-            public string Prefix;
-            public bool UsePermissions;
-            public bool WipeDataOnMapWipe;
-            public bool UseCost;
-            public bool UseServerRewards;
-            public int ServerRewardsCost;
-            public bool UseItems;
-            public Hash<string, int> ItemCostList;
-            public bool UseEconomics;
-            public double EconomicsCost;
-            public Hash<string, string> Commands;
-            public string ConfigVersion;
+            public List<string> ExcludedItems { get; set; }
+            public string Prefix { get; set; }
+            public bool UsePermissions { get; set; }
+            public bool WipeDataOnMapWipe { get; set; }
+            public bool UseCost { get; set; }
+            public bool UseServerRewards { get; set; }
+            public int ServerRewardsCost { get; set; }
+            public bool UseItems { get; set; }
+            public Hash<string, int> ItemCostList { get; set; }
+            public bool UseEconomics { get; set; }
+            public double EconomicsCost { get; set; }
+            public Hash<string, string> Commands { get; set; }
+            public string ConfigVersion { get; set; }
         }
 
         ///////////////////////////////////////////////////////////////
