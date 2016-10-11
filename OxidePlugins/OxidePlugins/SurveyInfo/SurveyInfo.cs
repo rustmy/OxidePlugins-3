@@ -96,7 +96,7 @@ namespace Oxide.Plugins
                 Prefix = "[<color=yellow>Survey Info</color>]",
                 SaveIntervalInSeconds = 600f,
                 SurveyIdDisplayLengthInSeconds = 150f,
-                UsePermission = false,
+                Permission = false,
                 UiColors = new UIColors(),
                 SurveyUiConfig = new SurveyDataUIConfig(),
                 GiveToUiConfig = new GiveToUIConfig(),
@@ -285,6 +285,7 @@ namespace Oxide.Plugins
         /// <param name="player"></param>
         /// <param name="entity"></param>
         /// //////////////////////////////////////////////////////////////////////////////////////
+        // ReSharper disable once UnusedMember.Local
         private void OnExplosiveThrown(BasePlayer player, BaseEntity entity)
         {
             if (!(entity is SurveyCharge)) return; //Make sure we are dealing with a survey charge
@@ -299,6 +300,8 @@ namespace Oxide.Plugins
 
             timer.Once(4.75f, () => // Set the SurveyData survey location to the location of the survey charge before exploding
             {
+                // ReSharper disable once ConstantConditionalAccessQualifier
+                // ReSharper disable once ConstantNullCoalescingCondition
                 data.Location = new Location(entity?.CenterPoint() ?? loc);
             });
 
@@ -412,7 +415,7 @@ namespace Oxide.Plugins
         /// //////////////////////////////////////////////////////////////////////////////////////
         private bool CheckPermission(BasePlayer player, string perm, bool showText)
         {
-            if (!_pluginConfig.UsePermission || permission.UserHasPermission(player.UserIDString, perm))
+            if (!_pluginConfig.Permission || permission.UserHasPermission(player.UserIDString, perm))
             {
                 return true;
             }
@@ -620,7 +623,7 @@ namespace Oxide.Plugins
                 string xMin = (conf.PlayerButtonStartPositionXMin + (col * conf.PlayerXSpacing)).ToString();
                 string xMax = (conf.PlayerButtonStartPositionXMax + (col * conf.PlayerXSpacing)).ToString();
 
-                SurveyInfoUI.CreateButton(ref container, GiveToContainerName, _pluginConfig.UiColors.ButtonPlayers, activePlayerList[playerIndex].displayName.ToString(), conf.GiveToPlayersTextSize, xMin + " " + yMin, xMax + " " + yMax, "si.sigiveto " + activePlayerList[playerIndex].userID + " " + recordId);
+                SurveyInfoUI.CreateButton(ref container, GiveToContainerName, _pluginConfig.UiColors.ButtonPlayers, activePlayerList[playerIndex].displayName, conf.GiveToPlayersTextSize, xMin + " " + yMin, xMax + " " + yMax, "si.sigiveto " + activePlayerList[playerIndex].userID + " " + recordId);
 
                 col = ++col % conf.GiveToPlayersPerRow; //increment col
                 if (playerIndex != 0 && col == 0) row++; //increment row each time col == 0 and it's not the first player
@@ -1049,7 +1052,7 @@ namespace Oxide.Plugins
             public string Prefix;
             public float SaveIntervalInSeconds;
             public float SurveyIdDisplayLengthInSeconds;
-            public bool UsePermission;
+            public bool Permission { get; set; }
             public UIColors UiColors;
             public SurveyDataUIConfig SurveyUiConfig;
             public GiveToUIConfig GiveToUiConfig;
@@ -1112,6 +1115,7 @@ namespace Oxide.Plugins
         #endregion
 
         #region Help Text
+        // ReSharper disable once UnusedMember.Local
         private void SendHelpText(BasePlayer player)
         {
             PrintToChat(player, @"[<color=yellow>Survey Info</color>] Help Text:\n

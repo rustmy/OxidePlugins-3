@@ -116,7 +116,7 @@ namespace Oxide.Plugins
             return new PluginConfig
             {
                 Prefix = "[<color=yellow>Auto CodeLock</color>]",
-                UsePermission = false,
+                Permission = false,
                 UseCost = true,
                 UseItemCost = true,
                 ItemCostList = new List<Hash<string, int>> { new Hash<string, int> { ["lock.code"] = 1 }, new Hash<string, int> { ["wood"] = 400, ["metal.fragments"] = 100 } },
@@ -129,6 +129,7 @@ namespace Oxide.Plugins
         /// Used to mark when the server has finished loading
         /// </summary>
         /// ////////////////////////////////////////////////////////////////////////
+        // ReSharper disable once UnusedMember.Local
         private void OnServerInitialized()
         {
             _serverInitialized = true;
@@ -143,9 +144,9 @@ namespace Oxide.Plugins
         /// <param name="command"></param>
         /// <param name="args"></param>
         /// ////////////////////////////////////////////////////////////////////////
+        [ChatCommand("ac")]
         // ReSharper disable once UnusedMember.Local
         // ReSharper disable once UnusedParameter.Local
-        [ChatCommand("ac")]
         private void SurveyInfoChatCommand(BasePlayer player, string command, string[] args)
         {
             if (!CheckPermission(player, UsePermission, true)) return;
@@ -345,7 +346,10 @@ namespace Oxide.Plugins
         /// ////////////////////////////////////////////////////////////////////////
         private string ParseToSaveFormat(string code)
         {
-            return string.Format("{0:X}", code);
+            int codeNum;
+            if (!int.TryParse(code, out codeNum)) return null; //try to parse the code to an int
+            // ReSharper disable once InterpolatedStringExpressionIsNotIFormattable
+            return $"{codeNum:X}";
         }
 
         ////////////////////////////////////////////////////////////////////////
@@ -358,11 +362,7 @@ namespace Oxide.Plugins
         private string SaveFormatToCode(string code)
         {
             int val;
-            if(int.TryParse(code , System.Globalization.NumberStyles.HexNumber, null, out val))
-            {
-                return val.ToString();
-            }
-            return null;
+            return int.TryParse(code , System.Globalization.NumberStyles.HexNumber, null, out val) ? val.ToString() : null;
         }
 
         #region Helper Methods
@@ -388,7 +388,7 @@ namespace Oxide.Plugins
         /// //////////////////////////////////////////////////////////////////////////////////////
         private bool CheckPermission(BasePlayer player, string perm, bool showText)
         {
-            if (!_pluginConfig.UsePermission || permission.UserHasPermission(player.UserIDString, perm))
+            if (!_pluginConfig.Permission || permission.UserHasPermission(player.UserIDString, perm))
             {
                 return true;
             }
@@ -411,7 +411,7 @@ namespace Oxide.Plugins
         class PluginConfig
         {
             public string Prefix;
-            public bool UsePermission;
+            public bool Permission { get; set; }
             public bool UseCost;
             public bool UseItemCost;
             public List<Hash<string, int>> ItemCostList;
