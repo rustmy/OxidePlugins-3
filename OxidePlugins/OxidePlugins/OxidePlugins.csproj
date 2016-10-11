@@ -39,6 +39,7 @@
     <Compile Include="ClanClothing\ClanClothing.cs" />
     <Compile Include="CupboardInfo\CupboardInfo.cs" />
     <Compile Include="HeliTargetInfo\HeliTargetInfo.cs" />
+    <Compile Include="Plugin\Plugin.cs" />
     <Compile Include="SurveyInfo\SurveyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

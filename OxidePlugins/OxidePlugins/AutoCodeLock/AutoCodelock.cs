@@ -116,7 +116,7 @@ namespace Oxide.Plugins
             return new PluginConfig
             {
                 Prefix = "[<color=yellow>Auto CodeLock</color>]",
-                Permission = false,
+                UsePermission = false,
                 UseCost = true,
                 UseItemCost = true,
                 ItemCostList = new List<Hash<string, int>> { new Hash<string, int> { ["lock.code"] = 1 }, new Hash<string, int> { ["wood"] = 400, ["metal.fragments"] = 100 } },
@@ -302,7 +302,7 @@ namespace Oxide.Plugins
             _whitelistField.SetValue(lockentity, whitelist);
 
             //Retreive the code for the player and set it on the codelock
-            string code = SaveFormatToCode(_storedData.PlayerCodes[player.userID]) ?? "";
+            string code = SaveFormatToCode(_storedData.PlayerCodes[player.userID]);
             if (ValidCode(code))
             {
                 CodeLock @lock = lockentity.GetComponent<CodeLock>();
@@ -388,7 +388,7 @@ namespace Oxide.Plugins
         /// //////////////////////////////////////////////////////////////////////////////////////
         private bool CheckPermission(BasePlayer player, string perm, bool showText)
         {
-            if (!_pluginConfig.Permission || permission.UserHasPermission(player.UserIDString, perm))
+            if (!_pluginConfig.UsePermission || permission.UserHasPermission(player.UserIDString, perm))
             {
                 return true;
             }
@@ -411,7 +411,7 @@ namespace Oxide.Plugins
         class PluginConfig
         {
             public string Prefix { get; set; }
-            public bool Permission { get; set; }
+            public bool UsePermission { get; set; }
             public bool UseCost { get; set; }
             public bool UseItemCost { get; set; }
             public List<Hash<string, int>> ItemCostList { get; set; }

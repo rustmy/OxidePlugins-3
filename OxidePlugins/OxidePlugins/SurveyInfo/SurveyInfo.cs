@@ -542,8 +542,6 @@ namespace Oxide.Plugins
             int recordStartIndex = _playerSurveyDataUiPage[player.userID] * conf.SurveyDataRecordsPerPage;
             int recordEndIndex = playerData.Count >= recordStartIndex + conf.SurveyDataRecordsPerPage ? recordStartIndex + conf.SurveyDataRecordsPerPage : playerData.Count;
             int row = 0;
-            bool showPrevPageButton = recordStartIndex != 0;
-            bool showNextPageButton = recordEndIndex != playerData.Count;
 
             for (int recordIndex = recordStartIndex; recordIndex < recordEndIndex; recordIndex++)
             {
@@ -562,12 +560,12 @@ namespace Oxide.Plugins
                 row++;
             }
 
-            if (showPrevPageButton)
+            if (recordStartIndex != 0)
             {
                 UICreator.CreateButton(ref container, SurveyContainerName, _pluginConfig.UiColors.ButtonPrevPage, Lang("PrevPage", player.UserIDString), conf.SurveyDataTextSize, conf.ButtonDataPrevPageMin, conf.ButtonDataPrevPageMax, "si.prevpage");
             }
 
-            if (showNextPageButton)
+            if (recordEndIndex != playerData.Count)
             {
                 UICreator.CreateButton(ref container, SurveyContainerName, _pluginConfig.UiColors.ButtonNextPage, Lang("NextPage", player.UserIDString), conf.SurveyDataTextSize, conf.ButtonDataNextPageMin, conf.ButtonDataNextPageMax, "si.nextpage");
             }
@@ -611,11 +609,6 @@ namespace Oxide.Plugins
             int playerEndIndex = activePlayerList.Count >= playerStartIndex + conf.GiveToPlayersPerPage ? playerStartIndex + conf.GiveToPlayersPerPage : activePlayerList.Count;
             int row = 0;
             int col = 0;
-            bool showPrevPageButton = playerStartIndex != 0;
-            bool showNextPageButton = playerEndIndex != activePlayerList.Count;
-
-            //Puts("CreateSurveyDataUi");
-            //Puts($"Start Index:{playerStartIndex} End Index:{playerEndIndex} Player Count:{activePlayerList.Count}");
 
             for (int playerIndex = playerStartIndex; playerIndex < playerEndIndex; playerIndex++)
             {
@@ -626,16 +619,16 @@ namespace Oxide.Plugins
 
                 UICreator.CreateButton(ref container, GiveToContainerName, _pluginConfig.UiColors.ButtonPlayers, activePlayerList[playerIndex].displayName, conf.GiveToPlayersTextSize, xMin + " " + yMin, xMax + " " + yMax, "si.sigiveto " + activePlayerList[playerIndex].userID + " " + recordId);
 
-                col = ++col % conf.GiveToPlayersPerRow; //increment col
-                if (playerIndex != 0 && col == 0) row++; //increment row each time col == 0 and it's not the first player
+                col = ++col % conf.GiveToPlayersPerRow; 
+                if (col == 0) row++; //increment row each time col == 0
             }
 
-            if (showPrevPageButton)
+            if (playerStartIndex != 0)
             {
                 UICreator.CreateButton(ref container, GiveToContainerName, _pluginConfig.UiColors.ButtonPrevPage, Lang("PrevPage", player.UserIDString), conf.GiveToPlayerPageTextSize, conf.ButtonGiveToPrevPageMin, conf.ButtonGiveToPrevPageMax, "si.giverevpage " + recordId);
             }
 
-            if (showNextPageButton)
+            if (playerEndIndex != activePlayerList.Count)
             {
                 UICreator.CreateButton(ref container, GiveToContainerName, _pluginConfig.UiColors.ButtonNextPage, Lang("NextPage", player.UserIDString), conf.GiveToPlayerPageTextSize, conf.ButtonGiveToNextPageMin, conf.ButtonGiveToNextPageMax, "si.givenextpage " + recordId);
             }
