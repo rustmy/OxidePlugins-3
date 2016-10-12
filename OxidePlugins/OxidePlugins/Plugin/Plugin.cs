@@ -4,6 +4,8 @@ using System.Collections.Generic;
 
 namespace Oxide.Plugins
 {
+    [Info("Plugin", "MJSU", "0.0.1")]
+    [Description("Is a plugin")]
     class Plugin : RustPlugin
     {
         #region Class Fields

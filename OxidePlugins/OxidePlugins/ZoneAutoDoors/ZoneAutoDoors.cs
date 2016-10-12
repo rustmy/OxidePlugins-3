@@ -5,6 +5,8 @@ using System.Collections.Generic;
 
 namespace Oxide.Plugins
 {
+    [Info("ZoneAutoDoors", "MJSU", "0.0.1")]
+    [Description("Force autodoors in set zones")]
     class ZoneAutoDoors : RustPlugin
     {
         [PluginReference]
@@ -72,6 +74,14 @@ namespace Oxide.Plugins
             };
 
             Config.WriteObject(_pluginConfig, true);
+        }
+
+        private void OnServerInitialized()
+        {
+            if(ZoneManager == null)
+            {
+                PrintWarning("ZoneAutoDoors could not find ZoneManager. ZoneAutoDoors will not work");
+            }
         }
         #endregion
 
