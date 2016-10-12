@@ -347,7 +347,7 @@ namespace Oxide.Plugins
         private string ParseToSaveFormat(string code)
         {
             if (code.Length != 4) return null;
-            code = SwapCodeCharacter(SwapCodeCharacter(code, 0, 3), 1, 2);
+            code = SwapCodeCharacter(SwapCodeCharacter(SwapCodeCharacter(SwapCodeCharacter(code, 0, 2), 1, 3), 1, 0), 2, 1);
             int codeNum;
             if (!int.TryParse(code, out codeNum)) return null; //try to parse the code to an int
             // ReSharper disable once InterpolatedStringExpressionIsNotIFormattable
@@ -367,7 +367,7 @@ namespace Oxide.Plugins
             int val;
             if (int.TryParse(code, System.Globalization.NumberStyles.HexNumber, null, out val))
             {
-                convertedCode = SwapCodeCharacter(SwapCodeCharacter(val.ToString("D4"), 0, 3), 1, 2);
+                convertedCode = SwapCodeCharacter(SwapCodeCharacter(SwapCodeCharacter(SwapCodeCharacter(val.ToString("D4"), 2, 1), 1, 0), 1, 3), 0, 2);
             }
 
             return convertedCode;
