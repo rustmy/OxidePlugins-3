@@ -346,10 +346,12 @@ namespace Oxide.Plugins
         /// ////////////////////////////////////////////////////////////////////////
         private string ParseToSaveFormat(string code)
         {
+            if (code.Length != 4) return null;
+            code = SwapCodeCharacter(SwapCodeCharacter(code, 0, 3), 1, 2);
             int codeNum;
             if (!int.TryParse(code, out codeNum)) return null; //try to parse the code to an int
             // ReSharper disable once InterpolatedStringExpressionIsNotIFormattable
-            return $"{codeNum:X}";
+            return $"{codeNum:X4}";
         }
 
         ////////////////////////////////////////////////////////////////////////
@@ -361,8 +363,23 @@ namespace Oxide.Plugins
         /// ////////////////////////////////////////////////////////////////////////
         private string SaveFormatToCode(string code)
         {
+            string convertedCode = null;
             int val;
-            return int.TryParse(code , System.Globalization.NumberStyles.HexNumber, null, out val) ? val.ToString() : null;
+            if (int.TryParse(code, System.Globalization.NumberStyles.HexNumber, null, out val))
+            {
+                convertedCode = SwapCodeCharacter(SwapCodeCharacter(val.ToString("D4"), 0, 3), 1, 2);
+            }
+
+            return convertedCode;
+        }
+
+        private string SwapCodeCharacter(string value, int index1, int index2)
+        {
+            char[] array = value.ToCharArray();
+            char temp = array[index1];
+            array[index1] = array[index2];
+            array[index2] = temp;
+            return new string(array);
         }
 
         #region Helper Methods
