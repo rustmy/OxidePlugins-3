@@ -191,7 +191,7 @@ namespace Oxide.Plugins
             if (!_serverInitialized) return; //Server has not finished starting yet. Used to prevent this code from running when the server is starting up
 
             Door door = entity as Door;
-            if (door == null) return; //Entity spawned is not a door
+            if (door == null || door.LookupPrefab().name.Contains("shutter")) return; //Entity spawned is not a door or it's a shutter
 
             BasePlayer player = BasePlayer.FindByID(door.OwnerID);
             if (player == null) return; //Failed to get the owner of the door
