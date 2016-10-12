@@ -126,8 +126,6 @@ namespace Oxide.Plugins
                     PrintToChat(player, $"{_pluginConfig.Prefix} {Lang("Removed", player.UserIDString, args[1])}");
                     break;
 
-                default:
-                    break;
             }
 
             Interface.Oxide.DataFileSystem.WriteObject("ZoneAutoDoors", _storedData);
@@ -135,19 +133,19 @@ namespace Oxide.Plugins
 
         private void OnDoorOpened(Door door, BasePlayer player)
         {
-            if (player.IsAdmin() || door == null || !door.IsOpen() || door.LookupPrefab().name.Contains("shutter")) return;
+            if (door == null || !door.IsOpen() || door.LookupPrefab().name.Contains("shutter")) return;
 
             float time = -1;
             foreach (KeyValuePair<string, float> zone in _storedData.ZoneTimes)
             {
-                if (ZoneManager?.Call<bool>("isPlayerInZone", player, zone.Key) ?? false)
+                if (ZoneManager?.Call<bool>("isPlayerInZone", zone.Key, player) ?? false)
                 {
                     time = zone.Value;
                     break;
                 }
             }
 
-            if (time == -1) return;
+            if ((int)time == -1) return;
 
             timer.Once(time, () =>
             {
