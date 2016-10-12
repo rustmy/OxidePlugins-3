@@ -22,7 +22,7 @@ namespace Oxide.Plugins
         // ReSharper disable once UnusedMember.Local
         private void Loaded()
         {
-            _pluginConfig = Config.ReadObject<PluginConfig>();
+            LoadDefaultConfig();
 
             lang.RegisterMessages(new Dictionary<string, string>()
             {
@@ -30,57 +30,20 @@ namespace Oxide.Plugins
             }, this);
         }
 
-        ////////////////////////////////////////////////////////////////////////
-        /// <summary>
-        /// Used to load a versioned config
-        /// </summary>
-        /// ////////////////////////////////////////////////////////////////////////
-        private void LoadVersionedConfig()
-        {
-            try
-            {
-                _pluginConfig = Config.ReadObject<PluginConfig>();
-
-                if (_pluginConfig.ConfigVersion == null)
-                {
-                    PrintWarning("Config failed to load correctly. Backing up to HeliTargetInfo.error.json and using default config");
-                    Config.WriteObject(_pluginConfig, true, Interface.Oxide.ConfigDirectory + "/HeliTargetInfo.error.json");
-                    _pluginConfig = DefaultConfig();
-                }
-            }
-            catch
-            {
-                _pluginConfig = DefaultConfig();
-            }
-
-            Config.WriteObject(_pluginConfig, true);
-        }
-
         //////////////////////////////////////////////////////////////////////////////////////
         /// <summary>
-        /// Loads the plugins default config
+        /// Loads the plugins config
         /// </summary>
         /// //////////////////////////////////////////////////////////////////////////////////////
         protected override void LoadDefaultConfig()
         {
-            Config.WriteObject(DefaultConfig(), true);
-        }
-
-        //////////////////////////////////////////////////////////////////////////////////////
-        /// <summary>
-        /// Plugins default config
-        /// </summary>
-        /// <returns></returns>
-        /// //////////////////////////////////////////////////////////////////////////////////////
-        private PluginConfig DefaultConfig()
-        {
-            PrintWarning("Loading Default Config");
-            return new PluginConfig
+            _pluginConfig = new PluginConfig
             {
-                Prefix = "[<color=yellow>Heli Target Info</color>]",
-                Cooldown = new TimeSpan(0, 0, 5, 0),
-                ConfigVersion = Version.ToString()
+                Prefix = GetConfig("Prefix", "[<color=yellow>Heli Target Info</color>]"),
+                Cooldown = TimeSpan.Parse(GetConfig("Cooldown", new TimeSpan(0, 0, 5, 0).ToString()))
             };
+
+            Config.WriteObject(_pluginConfig, true);
         }
         #endregion
 
@@ -118,6 +81,8 @@ namespace Oxide.Plugins
         ///  //////////////////////////////////////////////////////////////////////////////////////
         private string Lang(string key, string id = null, params object[] args)
             => string.Format(lang.GetMessage(key, this, id), args);
+
+        T GetConfig<T>(string name, T value) => Config[name] == null ? value : (T)Convert.ChangeType(Config[name], typeof(T));
         #endregion
 
         //////////////////////////////////////////////////////////////////////////////////////
@@ -129,7 +94,6 @@ namespace Oxide.Plugins
         {
             public string Prefix { get; set; }
             public TimeSpan Cooldown { get; set; }
-            public string ConfigVersion { get; set; }
         }
     }
 }

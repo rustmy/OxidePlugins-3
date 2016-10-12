@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using ProtoBuf;
 using Oxide.Core;
+using System;
 
 // ReSharper disable once CheckNamespace
 namespace Oxide.Plugins
@@ -22,7 +23,7 @@ namespace Oxide.Plugins
         /// ///////////////////////////////////////////////////////////////
         private void Loaded()
         {
-            _pluginConfig = Config.ReadObject<PluginConfig>();
+            LoadDefaultConfig();
 
             lang.RegisterMessages(new Dictionary<string, string>()
             {
@@ -35,55 +36,21 @@ namespace Oxide.Plugins
             permission.RegisterPermission(UsePermission, this);
         }
 
-        ////////////////////////////////////////////////////////////////////////
-        /// <summary>
-        /// Used to load a versioned config
-        /// </summary>
-        /// ////////////////////////////////////////////////////////////////////////
-        private void LoadVersionedConfig()
-        {
-            try
-            {
-                _pluginConfig = Config.ReadObject<PluginConfig>();
-
-                if (_pluginConfig.ConfigVersion == null)
-                {
-                    PrintWarning("Config failed to load correctly. Backing up to CupboardInfo.error.json and using default config");
-                    Config.WriteObject(_pluginConfig, true, Interface.Oxide.ConfigDirectory + "/CupboardInfo.error.json");
-                    _pluginConfig = DefaultConfig();
-                }
-            }
-            catch
-            {
-                _pluginConfig = DefaultConfig();
-            }
-
-            Config.WriteObject(_pluginConfig, true);
-        }
-
         ///////////////////////////////////////////////////////////////
         /// <summary>
-        /// Load the plugins default config
+        /// Load the plugins config
         /// </summary>
         /// ///////////////////////////////////////////////////////////////
         protected override void LoadDefaultConfig()
         {
-            PrintWarning("Loading Default Config");
-            Config.WriteObject(DefaultConfig(), true);
-        }
-
-        /// <summary>
-        /// Plugins default config
-        /// </summary>
-        /// <returns></returns>
-        private PluginConfig DefaultConfig()
-        {
-            return new PluginConfig
+            _pluginConfig = new PluginConfig
             {
-                Prefix = "[<color=yellow>Cupboard Info</color>]",
-                UsePermission = false,
-                ConfigVersion = Version.ToString()
+                Prefix = GetConfig("Prefix", "[<color=yellow>Cupboard Info</color>]"),
+                UsePermission = GetConfig("UsePermission", false)
             };
+
+
+            Config.WriteObject(_pluginConfig, true);
         }
 
         #endregion
@@ -192,6 +159,8 @@ namespace Oxide.Plugins
 
             return false;
         }
+
+        T GetConfig<T>(string name, T value) => Config[name] == null ? value : (T)Convert.ChangeType(Config[name], typeof(T));
         #endregion
 
         #region Classes
@@ -204,7 +173,6 @@ namespace Oxide.Plugins
         {
             public string Prefix { get; set; }
             public bool UsePermission { get; set; }
-            public string ConfigVersion { get; set; }
         }
         #endregion
     }

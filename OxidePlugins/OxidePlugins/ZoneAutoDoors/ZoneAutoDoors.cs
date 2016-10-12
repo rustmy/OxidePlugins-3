@@ -1,22 +1,26 @@
 ﻿using Oxide.Core;
+using Oxide.Core.Plugins;
 using System;
 using System.Collections.Generic;
 
 namespace Oxide.Plugins
 {
-    class Plugin : RustPlugin
+    class ZoneAutoDoors : RustPlugin
     {
+        [PluginReference]
+        Plugin ZoneManager;
+
         #region Class Fields
         private StoredData _storedData; //Plugin Data
         private PluginConfig _pluginConfig; //Plugin Config
 
-        private const string UsePermission = "plugin.use";
+        private const string UsePermission = "ZoneAutoDoors.use";
         #endregion
 
         #region Setup & Loading
         private void Loaded()
         {
-            LoadVersionedConfig();
+            LoadDefaultConfig();
             LoadDataFile();
             LoadLang();
 
@@ -32,41 +36,20 @@ namespace Oxide.Plugins
         {
             lang.RegisterMessages(new Dictionary<string, string>
             {
-                ["NoPermission"] = "You do not have permission to use this command"
+                ["NoPermission"] = "You do not have permission to use this command",
+                ["InvalidSytax"] = "Invalid Sytax (/zad add/remove ZoneId seconds)",
+                ["InvalidSeconds"] = "The time you set of {0} is not valid",
+                ["Added"] = "You have added zone {0} with a delay of {1}",
+                ["Removed"] = "You have removed zone {0}"
             }, this);
         }
 
-        ////////////////////////////////////////////////////////////////////////
-        /// <summary>
-        /// Used to load a versioned config
-        /// </summary>
-        /// ////////////////////////////////////////////////////////////////////////
-        private void LoadVersionedConfig()
-        {
-            try
-            {
-                _pluginConfig = Config.ReadObject<PluginConfig>();
-
-                if (_pluginConfig.ConfigVersion == null)
-                {
-                    PrintWarning("Config failed to load correctly. Backing up to AutoCodeLock.error.json and using default config");
-                    Config.WriteObject(_pluginConfig, true, Interface.Oxide.ConfigDirectory + "/AutoCodeLock.error.json");
-                    _pluginConfig = DefaultConfig();
-                }
-            }
-            catch
-            {
-                _pluginConfig = DefaultConfig();
-            }
-
-            Config.WriteObject(_pluginConfig, true);
-        }
 
         private void LoadDataFile()
         {
             try
             {
-                _storedData = Interface.Oxide.DataFileSystem.ReadObject<StoredData>("Plugin");
+                _storedData = Interface.Oxide.DataFileSystem.ReadObject<StoredData>("ZoneAutoDoors");
             }
             catch
             {
@@ -82,24 +65,82 @@ namespace Oxide.Plugins
         /// ////////////////////////////////////////////////////////////////////////
         protected override void LoadDefaultConfig()
         {
-            PrintWarning("Loading Default Config");
-            Config.WriteObject(DefaultConfig(), true);
+            _pluginConfig = new PluginConfig
+            {
+                Prefix = GetConfig("Prefix", "[<color=yellow>ZoneAutoDoors</color>]"),
+                UsePermission = GetConfig("UsePermission", false),
+            };
+
+            Config.WriteObject(_pluginConfig, true);
+        }
+        #endregion
+
+        #region Chat Command
+        [ChatCommand("zad")]
+        private void ZoneAutoDoorsChatCommand(BasePlayer player, string command, string[] args)
+        {
+            if (!player.IsAdmin() && !CheckPermission(player, UsePermission, true)) return;
+            if (args.Length < 1) return;
+            switch(args[0])
+            {
+                case "add":
+                    if (args.Length != 3)
+                    {
+                        PrintToChat(player, $"{_pluginConfig.Prefix} {Lang("InvalidSyntax", player.UserIDString)}");
+                        return;
+                    }
+
+                    float time;
+                    if (!float.TryParse(args[2], out time))
+                    {
+                        PrintToChat(player, $"{_pluginConfig.Prefix} {Lang("InvalidSeconds", player.UserIDString, args[2])}");
+                        return;
+                    }
+
+                    _storedData.ZoneTimes[args[1]] = time;
+                    PrintToChat(player, $"{_pluginConfig.Prefix} {Lang("Added", player.UserIDString, args[1], args[2])}");
+                    break;
+
+                case "remove":
+                    if (args.Length != 2)
+                    {
+                        PrintToChat(player, $"{_pluginConfig.Prefix} {Lang("InvalidSyntax", player.UserIDString)}");
+                        return;
+                    }
+                    _storedData.ZoneTimes.Remove(args[1]);
+                    PrintToChat(player, $"{_pluginConfig.Prefix} {Lang("Removed", player.UserIDString, args[1])}");
+                    break;
+
+                default:
+                    break;
+            }
+
+            Interface.Oxide.DataFileSystem.WriteObject("ZoneAutoDoors", _storedData);
         }
 
-        ////////////////////////////////////////////////////////////////////////
-        /// <summary>
-        /// Default config for this plugin
-        /// </summary>
-        /// <returns></returns>
-        /// ////////////////////////////////////////////////////////////////////////
-        private PluginConfig DefaultConfig()
+        private void OnDoorOpened(Door door, BasePlayer player)
         {
-            return new PluginConfig
+            if (door == null || !door.IsOpen() || door.LookupPrefab().name.Contains("shutter")) return;
+
+            float time = -1;
+            foreach (KeyValuePair<string, float> zone in _storedData.ZoneTimes)
             {
-                Prefix = "[<color=yellow>Plugin</color>]",
-                UsePermission = false,
-                ConfigVersion = Version.ToString()
-            };
+                if (ZoneManager?.Call<bool>("isPlayerInZone", player, zone.Key) ?? false)
+                {
+                    time = zone.Value;
+                    break;
+                }
+            }
+
+            if (time == -1) return;
+
+            timer.Once(time, () =>
+            {
+                if (!door || !door.IsOpen()) return;
+
+                door.SetFlag(BaseEntity.Flags.Open, false);
+                door.SendNetworkUpdateImmediate();
+            });
         }
         #endregion
 
@@ -146,12 +187,11 @@ namespace Oxide.Plugins
         {
             public string Prefix {get; set; }
             public bool UsePermission {get; set; }
-            public string ConfigVersion {get; set; }
         }
 
         class StoredData
         {
-
+            public Hash<string, float> ZoneTimes = new Hash<string, float>();
         }
         #endregion
     }

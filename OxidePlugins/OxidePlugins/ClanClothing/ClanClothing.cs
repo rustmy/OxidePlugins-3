@@ -190,7 +190,7 @@ namespace Oxide.Plugins
                 PrintWarning($"{_pluginConfig.Prefix} Clans plugin failed to load");
             }
 
-            if (_pluginConfig.UseCost) //Configs is set to use cost
+            if (_pluginConfig.UseCost) //Config is set to use cost
             {
                 if (_pluginConfig.UseServerRewards && ServerRewards == null) //Server Rewards set to use but plugin is not present
                 {
