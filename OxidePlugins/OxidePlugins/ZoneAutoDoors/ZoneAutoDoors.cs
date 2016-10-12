@@ -90,7 +90,12 @@ namespace Oxide.Plugins
         private void ZoneAutoDoorsChatCommand(BasePlayer player, string command, string[] args)
         {
             if (!player.IsAdmin() && !CheckPermission(player, UsePermission, true)) return;
-            if (args.Length < 1) return;
+            if (args.Length < 1)
+            {
+                PrintToChat(player, $"{_pluginConfig.Prefix} {Lang("InvalidSyntax", player.UserIDString)}");
+                return;
+            }
+
             switch(args[0])
             {
                 case "add":
