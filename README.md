@@ -5,6 +5,7 @@
 + Survey Info
 + Clan Clothing
 + Auto Code Lock
++ Zone Auto Doors
 
 ### Minor Plugins:
 + Heli Target Info
