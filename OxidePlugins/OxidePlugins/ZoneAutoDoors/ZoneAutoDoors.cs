@@ -130,7 +130,7 @@ namespace Oxide.Plugins
 
         private void OnDoorOpened(Door door, BasePlayer player)
         {
-            if (door == null || !door.IsOpen() || door.LookupPrefab().name.Contains("shutter")) return;
+            if (player.IsAdmin() || door == null || !door.IsOpen() || door.LookupPrefab().name.Contains("shutter")) return;
 
             float time = -1;
             foreach (KeyValuePair<string, float> zone in _storedData.ZoneTimes)
