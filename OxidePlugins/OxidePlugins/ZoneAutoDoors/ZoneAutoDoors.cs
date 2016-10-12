@@ -3,6 +3,7 @@ using Oxide.Core.Plugins;
 using System;
 using System.Collections.Generic;
 
+// ReSharper disable once CheckNamespace
 namespace Oxide.Plugins
 {
     [Info("ZoneAutoDoors", "MJSU", "0.0.1")]
@@ -20,6 +21,7 @@ namespace Oxide.Plugins
         #endregion
 
         #region Setup & Loading
+        // ReSharper disable once UnusedMember.Local
         private void Loaded()
         {
             LoadDefaultConfig();
@@ -76,6 +78,7 @@ namespace Oxide.Plugins
             Config.WriteObject(_pluginConfig, true);
         }
 
+        // ReSharper disable once UnusedMember.Local
         private void OnServerInitialized()
         {
             if(ZoneManager == null)
@@ -87,6 +90,8 @@ namespace Oxide.Plugins
 
         #region Chat Command
         [ChatCommand("zad")]
+        // ReSharper disable once UnusedMember.Local
+        // ReSharper disable once UnusedParameter.Local
         private void ZoneAutoDoorsChatCommand(BasePlayer player, string command, string[] args)
         {
             if (!player.IsAdmin() && !CheckPermission(player, UsePermission, true)) return;
@@ -131,6 +136,7 @@ namespace Oxide.Plugins
             Interface.Oxide.DataFileSystem.WriteObject("ZoneAutoDoors", _storedData);
         }
 
+        // ReSharper disable once UnusedMember.Local
         private void OnDoorOpened(Door door, BasePlayer player)
         {
             if (door == null || !door.IsOpen() || door.LookupPrefab().name.Contains("shutter")) return;
