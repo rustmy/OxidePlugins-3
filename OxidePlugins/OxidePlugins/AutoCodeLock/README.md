@@ -1,5 +1,5 @@
 # Auto Code Lock
-#### Allows players to have a code lock added to any door they place. This code lock will have the code set by the player. The door will also have the player added to it and the door will be locked. 
+ **Allows players to have a code lock added to any door they place. This code lock will have the code set by the player. The door will also have the player added to it and the door will be locked.**
 
 ### Chat Commands:
 + **/ac** - clears the playes set code lock code
@@ -26,4 +26,4 @@
 ```
 
 ### Note:
-#### **This plugin does not save the code in plain text in the data file so admins cannot directly see your the code lock codes**
+#### **This plugin does not save the code in plain text in the data file so admins cannot directly see your code lock codes**
