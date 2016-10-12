@@ -187,19 +187,19 @@ namespace Oxide.Plugins
         {
             if (Clans == null)
             {
-                PrintWarning($"{_pluginConfig.Prefix} Clans plugin failed to load");
+                PrintWarning($"clans plugin failed to load");
             }
 
             if (_pluginConfig.UseCost) //Config is set to use cost
             {
                 if (_pluginConfig.UseServerRewards && ServerRewards == null) //Server Rewards set to use but plugin is not present
                 {
-                    PrintWarning($"{_pluginConfig.Prefix} ServerRewards set to use but failed to load ServerRewards");
+                    PrintWarning($"ServerRewards set to use but failed to load ServerRewards");
                 }
 
                 if (_pluginConfig.UseEconomics && Economics == null) //Economics set to use but plugin is not present
                 {
-                    PrintWarning($"{_pluginConfig.Prefix} Economics set to use but failed to load Economics");
+                    PrintWarning($"Economics set to use but failed to load Economics");
                 }
             }
         }
