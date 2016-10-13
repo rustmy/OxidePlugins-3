@@ -93,8 +93,7 @@
     "PlayerButtonStartPositionYMax": 0.99,
     "PlayerXSpacing": 0.25,
     "PlayerButtonYSpacing": 0.05
-  },
-  "ConfigVersion": "0.0.1", //Version of the config
+  }
   "Permission": false //Does the player need permission to use
 }
 ```
