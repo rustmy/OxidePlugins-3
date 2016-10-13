@@ -48,7 +48,6 @@
     "ClaimCommand": "cc_claim",
     "AddCommand": "cc_add",
     "RemoveCommand": "cc_remove"
-  },
-  "ConfigVersion": "0.0.1" //Plugin Config Version
+  }
 }
 ```
