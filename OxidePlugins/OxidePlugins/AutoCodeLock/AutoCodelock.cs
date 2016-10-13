@@ -108,10 +108,31 @@ namespace Oxide.Plugins
         /// <param name="command"></param>
         /// <param name="args"></param>
         /// ////////////////////////////////////////////////////////////////////////
-        [ChatCommand("ac")]
+        [ChatCommand("adc")]
         // ReSharper disable once UnusedMember.Local
         // ReSharper disable once UnusedParameter.Local
-        private void SurveyInfoChatCommand(BasePlayer player, string command, string[] args)
+        private void DoorCodeLockChatCommand(BasePlayer player, string command, string[] args)
+        {
+            HandleChatCommand(player, args, _storedData.DoorCode);
+        }
+
+        ////////////////////////////////////////////////////////////////////////
+        /// <summary>
+        /// Chat command to set / remove the players codelock code
+        /// </summary>
+        /// <param name="player"></param>
+        /// <param name="command"></param>
+        /// <param name="args"></param>
+        /// ////////////////////////////////////////////////////////////////////////
+        [ChatCommand("asc")]
+        // ReSharper disable once UnusedMember.Local
+        // ReSharper disable once UnusedParameter.Local
+        private void StorageContainerChatCommand(BasePlayer player, string command, string[] args)
+        {
+            HandleChatCommand(player, args, _storedData.StorageCodes);
+        }
+
+        private void HandleChatCommand(BasePlayer player, string[] args, Hash<ulong, string> codeStorage)
         {
             if (!CheckPermission(player, UsePermission, true)) return;
 
@@ -119,7 +140,7 @@ namespace Oxide.Plugins
             {
                 //Disable set autocode
                 case 0:
-                    _storedData.PlayerCodes[player.userID] = null;
+                    codeStorage[player.userID] = null;
                     PrintToChat(player, $"{_pluginConfig.Prefix} {Lang("Disabled", player.UserIDString)}");
                     break;
 
@@ -130,7 +151,7 @@ namespace Oxide.Plugins
                         PrintToChat(player, $"{_pluginConfig.Prefix} {Lang("InvalidCode", player.UserIDString, args[0])}");
                         return;
                     }
-                    _storedData.PlayerCodes[player.userID] = ParseToSaveFormat(args[0]);
+                    codeStorage[player.userID] = ParseToSaveFormat(args[0]);
                     PrintToChat(player, $"{_pluginConfig.Prefix} {Lang("CodeSet", player.UserIDString, args[0])}");
                     break;
 
@@ -154,13 +175,25 @@ namespace Oxide.Plugins
         {
             if (!_serverInitialized) return; //Server has not finished starting yet. Used to prevent this code from running when the server is starting up
 
-            Door door = entity as Door;
+            if(entity is Door)
+            {
+                HandleDoorSpawn(entity as Door);
+            }
+
+            if(entity is StorageContainer)
+            {
+                HandleContainerSpawn(entity as StorageContainer);
+            }
+        }
+
+        private void HandleDoorSpawn(Door door)
+        {
             if (door == null || (!_pluginConfig.AllowCodeLockOnShutter && door.LookupPrefab().name.Contains("shutter"))) return; //Entity spawned is not a door or it's a shutter
 
             BasePlayer player = BasePlayer.FindByID(door.OwnerID);
             if (player == null) return; //Failed to get the owner of the door
 
-            if (_storedData.PlayerCodes[player.userID] == null) return; //Player has not set their autocodelock code yet
+            if (_storedData.DoorCode[player.userID] == null) return; //Player has not set their autocodelock code yet
 
             int index;
             if (!CanAfford(player, out index)) //Player cannot afford
@@ -174,8 +207,34 @@ namespace Oxide.Plugins
                 TakeCost(player, index);
             }
 
-            AddLockToDoor(player, door); //Add the lock to the door
+            AddLockToEntity(player, door, null); //Add the lock to the door
         }
+
+
+        private void HandleContainerSpawn(StorageContainer container)
+        {
+            if (container == null) return; //Entity spawned is not a door or it's a shutter
+
+            BasePlayer player = BasePlayer.FindByID(container.OwnerID);
+            if (player == null) return; //Failed to get the owner of the door
+
+            if (_storedData.StorageCodes[player.userID] == null) return; //Player has not set their autocodelock code yet
+
+            int index;
+            if (!CanAfford(player, out index)) //Player cannot afford
+            {
+                PrintToChat(player, $"{_pluginConfig.Prefix} {Lang("CanNotAfford", player.UserIDString)}");
+                return;
+            }
+
+            if (index != -1) //The code lock costs items to place
+            {
+                TakeCost(player, index);
+            }
+
+            AddLockToEntity(player, null, container); //Add the lock to the door
+        }
+
 
         ////////////////////////////////////////////////////////////////////////
         /// <summary>
@@ -252,13 +311,15 @@ namespace Oxide.Plugins
         /// </summary>
         /// <param name="player">player who placed the door</param>
         /// <param name="door">the door the codelock is going to be attached too</param>
+        /// <param name="container">the container the codelock is going to be attached too</param>
         /// ////////////////////////////////////////////////////////////////////////
-        private void AddLockToDoor(BasePlayer player, Door door)
+        private void AddLockToEntity(BasePlayer player, Door door, StorageContainer container)
         {
             //Create a CodeLock
             BaseEntity lockentity = GameManager.server.CreateEntity(CodeLockPrefabLocation, Vector3.zero, new Quaternion());
 
-            lockentity.OnDeployed(door);
+            if(door != null) lockentity.OnDeployed(door);
+            if(container != null) lockentity.OnDeployed(container);
 
             //Add the player to the codelock whitelist
             List<ulong> whitelist = (List<ulong>)_whitelistField.GetValue(lockentity);
@@ -266,7 +327,7 @@ namespace Oxide.Plugins
             _whitelistField.SetValue(lockentity, whitelist);
 
             //Retreive the code for the player and set it on the codelock
-            string code = SaveFormatToCode(_storedData.PlayerCodes[player.userID]);
+            string code = SaveFormatToCode(_storedData.DoorCode[player.userID]);
             if (ValidCode(code))
             {
                 CodeLock @lock = lockentity.GetComponent<CodeLock>();
@@ -281,10 +342,20 @@ namespace Oxide.Plugins
             //Add the codelock to the door
             if (!lockentity) return;
             lockentity.gameObject.Identity();
-            lockentity.SetParent(door, "lock");
-            lockentity.Spawn();
-            door.SetSlot(BaseEntity.Slot.Lock, lockentity);
-        }
+
+            if(door != null)
+            {
+                lockentity.SetParent(door, "lock");
+                lockentity.Spawn();
+                door.SetSlot(BaseEntity.Slot.Lock, lockentity);
+            }
+            if(container != null)
+            {
+                lockentity.SetParent(container, "lock");
+                lockentity.Spawn();
+                container.SetSlot(BaseEntity.Slot.Lock, lockentity);
+            }
+        }    
 
         ////////////////////////////////////////////////////////////////////////
         /// <summary>
@@ -407,7 +478,8 @@ namespace Oxide.Plugins
         /// ////////////////////////////////////////////////////////////////////////
         class StoredData
         {
-            public Hash<ulong, string> PlayerCodes = new Hash<ulong, string>();
+            public Hash<ulong, string> DoorCode = new Hash<ulong, string>();
+            public Hash<ulong, string> StorageCodes = new Hash<ulong, string>();
         }
         #endregion
 

@@ -209,7 +209,7 @@ namespace Oxide.Plugins
             }
 
             if (!CanPlayerAfford(player)) return; //Player can't afford the clan clothing    
-            if (!TakeCostFromPlayer(player)) return; //Failed to apply the cost to the player
+            TakeCostFromPlayer(player);
 
             foreach (ClothingItem item in itemsToGive) //Give all the items to the player
             {
@@ -461,9 +461,9 @@ namespace Oxide.Plugins
         /// <param name="player"></param>
         /// <returns></returns>
         /// ///////////////////////////////////////////////////////////////
-        private bool TakeCostFromPlayer(BasePlayer player)
+        private void TakeCostFromPlayer(BasePlayer player)
         {
-            if (!_pluginConfig.UseCost) return true; //Use cost is false
+            if (!_pluginConfig.UseCost) return; //Use cost is false
 
             if (_pluginConfig.UseServerRewards && ServerRewards != null) //Use ServerRewards and Server Rewards is loaded
             {
@@ -472,7 +472,6 @@ namespace Oxide.Plugins
                 if (success == null) //Player does not have any server rewards or failed to call plugin
                 {
                     PrintToChat(player, $"{_pluginConfig.Prefix} {Lang("PluginFailed", player.UserIDString, "ServerRewards")}");
-                    return false;
                 }
             }
 
@@ -483,7 +482,6 @@ namespace Oxide.Plugins
                 if (success == null) //Failed to call Withdraw on the economics plugin
                 {
                     PrintToChat(player, $"{_pluginConfig.Prefix} {Lang("PluginFailed", player.UserIDString, "Economics money")}");
-                    return false;
                 }
             }
 
@@ -497,8 +495,6 @@ namespace Oxide.Plugins
                     player.inventory.Take(collection, itemToTake.itemid, item.Value);
                 }
             }
-
-            return true; //Successfully removed all the necessary costs from the player
         }
 
         ///////////////////////////////////////////////////////////////
