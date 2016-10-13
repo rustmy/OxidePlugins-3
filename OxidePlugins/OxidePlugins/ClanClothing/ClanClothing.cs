@@ -30,9 +30,12 @@ namespace Oxide.Plugins
         // ReSharper disable once UnusedMember.Local
         private void Loaded()
         {
-            LoadVersionConfig();
-            LoadDataFile();
             LoadLang();
+
+            _pluginConfig = ConfigOrDefault(Config.ReadObject<PluginConfig>());
+            Config.WriteObject(_pluginConfig, true);
+
+            _storedData = Interface.Oxide.DataFileSystem.ReadObject<StoredData>("ClanClothing");
 
             //Add the chat commands from the config
             cmd.AddChatCommand(_pluginConfig.Commands["CheckCost"], this, CheckCostChatCommand);
@@ -42,43 +45,6 @@ namespace Oxide.Plugins
             cmd.AddChatCommand(_pluginConfig.Commands["RemoveCommand"], this, RemoveChatCommand);
 
             permission.RegisterPermission(UsePermission, this);
-        }
-
-        /// <summary>
-        /// As the config version changed update with default values
-        /// </summary>
-        private void LoadVersionConfig()
-        {
-            try
-            {
-                _pluginConfig = Config.ReadObject<PluginConfig>();
-
-                if (_pluginConfig.ConfigVersion == null)
-                {
-                    PrintWarning("Config failed to load correctly. Backing up to ClanClothing.error.json and using default config");
-                    Config.WriteObject(_pluginConfig, true, Interface.Oxide.ConfigDirectory + "/ClanClothing.error.json");
-                    _pluginConfig = DefaultConfig();
-                }
-            }
-            catch
-            {
-                _pluginConfig = DefaultConfig();
-            }
-
-            Config.WriteObject(_pluginConfig, true);
-        }
-
-        private void LoadDataFile()
-        {
-            try
-            {
-                _storedData = Interface.Oxide.DataFileSystem.ReadObject<StoredData>("ClanClothing");
-            }
-            catch
-            {
-                PrintWarning("Data File could not be loaded. Creating new File");
-                _storedData = new StoredData();
-            }
         }
 
         /// <summary>
@@ -114,49 +80,52 @@ namespace Oxide.Plugins
             }, this);
         }
 
+        ////////////////////////////////////////////////////////////////////////
         /// <summary>
-        /// Load the default config for the plugin
+        /// load the default config for this plugin
         /// </summary>
+        /// ////////////////////////////////////////////////////////////////////////
         protected override void LoadDefaultConfig()
         {
             PrintWarning("Loading Default Config");
-            Config.WriteObject(DefaultConfig(), true);
+            Config.WriteObject(ConfigOrDefault(null), true);
         }
 
+        ////////////////////////////////////////////////////////////////////////
         /// <summary>
-        /// Returns the default config for the plugin
+        /// Uses the values passed in from config. If any values are null it updates them with default values
         /// </summary>
-        /// <returns>Default config as PluginConfig</returns>
-        // ReSharper disable once UnusedMember.Local
-        private PluginConfig DefaultConfig()
+        /// <param name="config">Config that has been loaded or null</param>
+        /// <returns>Config using values passed in from config default values</returns>
+        /// ////////////////////////////////////////////////////////////////////////
+        private PluginConfig ConfigOrDefault(PluginConfig config)
         {
             return new PluginConfig
             {
-                ExcludedItems = new List<string> { "metal.facemask", "metal.plate.torso", "roadsign.jacket", "roadsign.kilt" },
-                Prefix = "[<color=yellow>Clan Clothing</color>]",
-                UsePermissions = false,
-                WipeDataOnMapWipe = true,
-                UseCost = false,
-                UseServerRewards = false,
-                ServerRewardsCost = 0,
-                UseItems = false,
-                ItemCostList = new Hash<string, int>
+                ExcludedItems = config?.ExcludedItems ?? new List<string> { "metal.facemask", "metal.plate.torso", "roadsign.jacket", "roadsign.kilt" },
+                Prefix = config?.Prefix ?? "[<color=yellow>Clan Clothing</color>]",
+                UsePermissions = config?.UsePermissions ?? false,
+                WipeDataOnMapWipe = config?.WipeDataOnMapWipe ?? true,
+                UseCost = config?.UseCost ?? false,
+                UseServerRewards = config?.UseServerRewards ?? false,
+                ServerRewardsCost = config?.ServerRewardsCost ?? 0,
+                UseItems = config?.UseItems ?? false,
+                ItemCostList = config?.ItemCostList ?? new Hash<string, int>
                 {
                     ["wood"] = 100,
                     ["stones"] = 50,
                     ["metal.fragments"] = 25
                 },
-                UseEconomics = false,
-                EconomicsCost = 0,
-                Commands = new Hash<string, string>
+                UseEconomics = config?.UseEconomics ?? false,
+                EconomicsCost = config?.EconomicsCost ?? 0,
+                Commands = config?.Commands ?? new Hash<string, string>
                 {
                     ["CheckCost"] = "cc_check",
                     ["ViewClanClothing"] = "cc_view",
                     ["ClaimCommand"] = "cc_claim",
                     ["AddCommand"] = "cc_add",
                     ["RemoveCommand"] = "cc_remove"
-                },
-                ConfigVersion = Version.ToString()
+                }
             };
         }
 
@@ -638,7 +607,6 @@ namespace Oxide.Plugins
             public bool UseEconomics { get; set; }
             public double EconomicsCost { get; set; }
             public Hash<string, string> Commands { get; set; }
-            public string ConfigVersion { get; set; }
         }
 
         ///////////////////////////////////////////////////////////////

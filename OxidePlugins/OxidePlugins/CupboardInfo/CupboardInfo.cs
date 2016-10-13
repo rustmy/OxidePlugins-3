@@ -23,7 +23,8 @@ namespace Oxide.Plugins
         /// ///////////////////////////////////////////////////////////////
         private void Loaded()
         {
-            LoadDefaultConfig();
+            _pluginConfig = ConfigOrDefault(Config.ReadObject<PluginConfig>());
+            Config.WriteObject(_pluginConfig, true);
 
             lang.RegisterMessages(new Dictionary<string, string>()
             {
@@ -36,23 +37,31 @@ namespace Oxide.Plugins
             permission.RegisterPermission(UsePermission, this);
         }
 
-        ///////////////////////////////////////////////////////////////
+        ////////////////////////////////////////////////////////////////////////
         /// <summary>
-        /// Load the plugins config
+        /// load the default config for this plugin
         /// </summary>
-        /// ///////////////////////////////////////////////////////////////
+        /// ////////////////////////////////////////////////////////////////////////
         protected override void LoadDefaultConfig()
         {
-            _pluginConfig = new PluginConfig
-            {
-                Prefix = GetConfig("Prefix", "[<color=yellow>Cupboard Info</color>]"),
-                UsePermission = GetConfig("UsePermission", false)
-            };
-
-
-            Config.WriteObject(_pluginConfig, true);
+            Config.WriteObject(ConfigOrDefault(null), true);
         }
 
+        ////////////////////////////////////////////////////////////////////////
+        /// <summary>
+        /// Uses the values passed in from config. If any values are null it updates them with default values
+        /// </summary>
+        /// <param name="config">Config that has been loaded or null</param>
+        /// <returns>Config using values passed in from config default values</returns>
+        /// ////////////////////////////////////////////////////////////////////////
+        private PluginConfig ConfigOrDefault(PluginConfig config)
+        {
+            return new PluginConfig
+            {
+                Prefix = config?.Prefix ?? "[<color=yellow>Cupboard Info</color>]",
+                UsePermission =  config?.UsePermission ?? false
+            };
+        }
         #endregion
 
         #region Oxide Hooks
@@ -159,8 +168,6 @@ namespace Oxide.Plugins
 
             return false;
         }
-
-        T GetConfig<T>(string name, T value) => Config[name] == null ? value : (T)Convert.ChangeType(Config[name], typeof(T));
         #endregion
 
         #region Classes

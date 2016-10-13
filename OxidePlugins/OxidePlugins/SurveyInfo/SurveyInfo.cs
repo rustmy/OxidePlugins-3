@@ -41,9 +41,12 @@ namespace Oxide.Plugins
         // ReSharper disable once UnusedMember.Local
         private void Loaded()
         {
-            LoadVersionedConfig();
-            LoadDataFile();
             LoadLang();
+
+            _pluginConfig = ConfigOrDefault(Config.ReadObject<PluginConfig>());
+            Config.WriteObject(_pluginConfig, true);
+
+            _storedData = Interface.Oxide.DataFileSystem.ReadObject<StoredData>("SurveyInfo");
 
             permission.RegisterPermission(UsePermission, this);
 
@@ -84,59 +87,36 @@ namespace Oxide.Plugins
             }, this);
         }
 
+        ////////////////////////////////////////////////////////////////////////
+        /// <summary>
+        /// load the default config for this plugin
+        /// </summary>
+        /// ////////////////////////////////////////////////////////////////////////
         protected override void LoadDefaultConfig()
         {
             PrintWarning("Loading Default Config");
-            Config.WriteObject(DefaultConfig(), true);
+            Config.WriteObject(ConfigOrDefault(null), true);
         }
 
-        private PluginConfig DefaultConfig()
+        ////////////////////////////////////////////////////////////////////////
+        /// <summary>
+        /// Uses the values passed in from config. If any values are null it updates them with default values
+        /// </summary>
+        /// <param name="config">Config that has been loaded or null</param>
+        /// <returns>Config using values passed in from config default values</returns>
+        /// ////////////////////////////////////////////////////////////////////////
+        private PluginConfig ConfigOrDefault(PluginConfig config)
         {
             return new PluginConfig
             {
-                Prefix = "[<color=yellow>Survey Info</color>]",
-                SaveIntervalInSeconds = 600f,
-                SurveyIdDisplayLengthInSeconds = 150f,
-                UsePermission = false,
-                UiColors = new UIColors(),
-                SurveyUiConfig = new SurveyDataUIConfig(),
-                GiveToUiConfig = new GiveToUIConfig(),
-                ConfigVersion = Version.ToString()
+                Prefix = config?.Prefix ?? "[<color=yellow>Survey Info</color>]",
+                SaveIntervalInSeconds = config?.SaveIntervalInSeconds ?? 600f,
+                SurveyIdDisplayLengthInSeconds = config?.SurveyIdDisplayLengthInSeconds ?? 150f,
+                UsePermission = config?.UsePermission ?? false,
+                UiColors = config?.UiColors ?? new UIColors(),
+                SurveyUiConfig = config?.SurveyUiConfig ??  new SurveyDataUIConfig(),
+                GiveToUiConfig = config?.GiveToUiConfig ?? new GiveToUIConfig(),
             };
-        }
-
-        private void LoadVersionedConfig()
-        {
-            try
-            {
-                _pluginConfig = Config.ReadObject<PluginConfig>();
-
-                if (_pluginConfig.ConfigVersion == null)
-                {
-                    PrintWarning("Config failed to load correctly. Backing up to SurveyInfo.error.json and using default config");
-                    Config.WriteObject(_pluginConfig, true, Interface.Oxide.ConfigDirectory + "/SurveyInfo.error.json");
-                    _pluginConfig = DefaultConfig();
-                }
-            }
-            catch
-            {
-                _pluginConfig = DefaultConfig();
-            }
-
-            Config.WriteObject(_pluginConfig, true);
-        }
-
-        private void LoadDataFile()
-        {
-            try
-            {
-                _storedData = Interface.Oxide.DataFileSystem.ReadObject<StoredData>("SurveyInfo");
-            }
-            catch
-            {
-                PrintWarning("Data File could not be loaded. Creating new File");
-                _storedData = new StoredData();
-            }
         }
 
         // ReSharper disable once UnusedMember.Local
@@ -1049,7 +1029,6 @@ namespace Oxide.Plugins
             public UIColors UiColors { get; set; }
             public SurveyDataUIConfig SurveyUiConfig { get; set; }
             public GiveToUIConfig GiveToUiConfig { get; set; }
-            public string ConfigVersion { get; set; }
         }
         #endregion
         #endregion

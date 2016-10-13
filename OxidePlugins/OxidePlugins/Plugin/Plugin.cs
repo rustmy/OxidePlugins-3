@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace Oxide.Plugins
 {
-    [Info("Plugin", "MJSU", "0.0.1")]
+    [Info("BasePlugin", "MJSU", "0.0.1")]
     [Description("Is a plugin")]
     class Plugin : RustPlugin
     {
@@ -18,9 +18,12 @@ namespace Oxide.Plugins
         #region Setup & Loading
         private void Loaded()
         {
-            LoadVersionedConfig();
-            LoadDataFile();
             LoadLang();
+
+            _pluginConfig = ConfigOrDefault(Config.ReadObject<PluginConfig>());
+            Config.WriteObject(_pluginConfig, true);
+
+            _storedData = Interface.Oxide.DataFileSystem.ReadObject<StoredData>("Plugin");
 
             permission.RegisterPermission(UsePermission, this);
         }
@@ -40,67 +43,28 @@ namespace Oxide.Plugins
 
         ////////////////////////////////////////////////////////////////////////
         /// <summary>
-        /// Used to load a versioned config
-        /// </summary>
-        /// ////////////////////////////////////////////////////////////////////////
-        private void LoadVersionedConfig()
-        {
-            try
-            {
-                _pluginConfig = Config.ReadObject<PluginConfig>();
-
-                if (_pluginConfig.ConfigVersion == null)
-                {
-                    PrintWarning("Config failed to load correctly. Backing up to AutoCodeLock.error.json and using default config");
-                    Config.WriteObject(_pluginConfig, true, Interface.Oxide.ConfigDirectory + "/AutoCodeLock.error.json");
-                    _pluginConfig = DefaultConfig();
-                }
-            }
-            catch
-            {
-                _pluginConfig = DefaultConfig();
-            }
-
-            Config.WriteObject(_pluginConfig, true);
-        }
-
-        private void LoadDataFile()
-        {
-            try
-            {
-                _storedData = Interface.Oxide.DataFileSystem.ReadObject<StoredData>("Plugin");
-            }
-            catch
-            {
-                PrintWarning("Data File could not be loaded. Creating new File");
-                _storedData = new StoredData();
-            }
-        }
-
-        ////////////////////////////////////////////////////////////////////////
-        /// <summary>
-        /// load the plugins config
+        /// load the default config for this plugin
         /// </summary>
         /// ////////////////////////////////////////////////////////////////////////
         protected override void LoadDefaultConfig()
         {
             PrintWarning("Loading Default Config");
-            Config.WriteObject(DefaultConfig(), true);
+            Config.WriteObject(ConfigOrDefault(null), true);
         }
 
         ////////////////////////////////////////////////////////////////////////
         /// <summary>
-        /// Default config for this plugin
+        /// Uses the values passed in from config. If any values are null it updates them with default values
         /// </summary>
-        /// <returns></returns>
+        /// <param name="config">Config that has been loaded or null</param>
+        /// <returns>Config using values passed in from config default values</returns>
         /// ////////////////////////////////////////////////////////////////////////
-        private PluginConfig DefaultConfig()
+        private PluginConfig ConfigOrDefault(PluginConfig config)
         {
             return new PluginConfig
             {
-                Prefix = "[<color=yellow>Plugin</color>]",
-                UsePermission = false,
-                ConfigVersion = Version.ToString()
+                Prefix = config?.Prefix ?? "[<color=yellow>Plugin</color>]",
+                UsePermission = config?.UsePermission ?? false,
             };
         }
         #endregion
@@ -139,16 +103,14 @@ namespace Oxide.Plugins
 
             return false;
         }
-
-        T GetConfig<T>(string name, T value) => Config[name] == null ? value : (T)Convert.ChangeType(Config[name], typeof(T));
         #endregion
 
         #region Classes
         class PluginConfig
         {
-            public string Prefix {get; set; }
-            public bool UsePermission {get; set; }
-            public string ConfigVersion {get; set; }
+            public string Prefix { get; set; }
+            public bool UsePermission { get; set; }
+            public string ConfigVersion { get; set; }
         }
 
         class StoredData

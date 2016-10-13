@@ -22,7 +22,8 @@ namespace Oxide.Plugins
         // ReSharper disable once UnusedMember.Local
         private void Loaded()
         {
-            LoadDefaultConfig();
+            _pluginConfig = ConfigOrDefault(Config.ReadObject<PluginConfig>());
+            Config.WriteObject(_pluginConfig, true);
 
             lang.RegisterMessages(new Dictionary<string, string>()
             {
@@ -30,20 +31,30 @@ namespace Oxide.Plugins
             }, this);
         }
 
-        //////////////////////////////////////////////////////////////////////////////////////
+        ////////////////////////////////////////////////////////////////////////
         /// <summary>
-        /// Loads the plugins config
+        /// load the default config for this plugin
         /// </summary>
-        /// //////////////////////////////////////////////////////////////////////////////////////
+        /// ////////////////////////////////////////////////////////////////////////
         protected override void LoadDefaultConfig()
         {
-            _pluginConfig = new PluginConfig
-            {
-                Prefix = GetConfig("Prefix", "[<color=yellow>Heli Target Info</color>]"),
-                Cooldown = TimeSpan.Parse(GetConfig("Cooldown", new TimeSpan(0, 0, 5, 0).ToString()))
-            };
+            Config.WriteObject(ConfigOrDefault(null), true);
+        }
 
-            Config.WriteObject(_pluginConfig, true);
+        ////////////////////////////////////////////////////////////////////////
+        /// <summary>
+        /// Uses the values passed in from config. If any values are null it updates them with default values
+        /// </summary>
+        /// <param name="config">Config that has been loaded or null</param>
+        /// <returns>Config using values passed in from config default values</returns>
+        /// ////////////////////////////////////////////////////////////////////////
+        private PluginConfig ConfigOrDefault(PluginConfig config)
+        {
+            return new PluginConfig
+            {
+                Prefix = config?.Prefix ?? "[<color=yellow>Heli Target Info</color>]",
+                Cooldown = config?.Cooldown ?? new TimeSpan(0, 0, 5, 0)
+            };
         }
         #endregion
 
@@ -81,8 +92,6 @@ namespace Oxide.Plugins
         ///  //////////////////////////////////////////////////////////////////////////////////////
         private string Lang(string key, string id = null, params object[] args)
             => string.Format(lang.GetMessage(key, this, id), args);
-
-        T GetConfig<T>(string name, T value) => Config[name] == null ? value : (T)Convert.ChangeType(Config[name], typeof(T));
         #endregion
 
         //////////////////////////////////////////////////////////////////////////////////////

@@ -29,10 +29,13 @@ namespace Oxide.Plugins
         /// ////////////////////////////////////////////////////////////////////////
         private void Loaded()
         {
-            LoadVersionedConfig();
-            LoadDataFile();
             LoadLang();
-            
+
+            _pluginConfig = ConfigOrDefault(Config.ReadObject<PluginConfig>());
+            Config.WriteObject(_pluginConfig, true);
+
+            _storedData = Interface.Oxide.DataFileSystem.ReadObject<StoredData>("AutoCodeLock");
+
             permission.RegisterPermission(UsePermission, this);
         }
 
@@ -57,70 +60,32 @@ namespace Oxide.Plugins
 
         ////////////////////////////////////////////////////////////////////////
         /// <summary>
-        /// Used to load a versioned config
-        /// </summary>
-        /// ////////////////////////////////////////////////////////////////////////
-        private void LoadVersionedConfig()
-        {
-            try
-            {
-                _pluginConfig = Config.ReadObject<PluginConfig>();
-
-                if (_pluginConfig.ConfigVersion == null)
-                {
-                    PrintWarning("Config failed to load correctly. Backing up to AutoCodeLock.error.json and using default config");
-                    Config.WriteObject(_pluginConfig, true, Interface.Oxide.ConfigDirectory + "/AutoCodeLock.error.json");
-                    _pluginConfig = DefaultConfig();
-                }
-            }
-            catch
-            {
-                _pluginConfig = DefaultConfig();
-            }
-
-            Config.WriteObject(_pluginConfig, true);
-        }
-
-        private void LoadDataFile()
-        {
-            try
-            {
-                _storedData = Interface.Oxide.DataFileSystem.ReadObject<StoredData>("AutoCodeLock");
-            }
-            catch
-            {
-                PrintWarning("Data File could not be loaded. Creating new File");
-                _storedData = new StoredData();
-            }
-        }
-
-        ////////////////////////////////////////////////////////////////////////
-        /// <summary>
         /// load the default config for this plugin
         /// </summary>
         /// ////////////////////////////////////////////////////////////////////////
         protected override void LoadDefaultConfig()
         {
             PrintWarning("Loading Default Config");
-            Config.WriteObject(DefaultConfig(), true);
+            Config.WriteObject(ConfigOrDefault(null), true);
         }
 
         ////////////////////////////////////////////////////////////////////////
         /// <summary>
-        /// Default config for this plugin
+        /// Uses the values passed in from config. If any values are null it updates them with default values
         /// </summary>
-        /// <returns></returns>
+        /// <param name="config">Config that has been loaded or null</param>
+        /// <returns>Config using values passed in from config default values</returns>
         /// ////////////////////////////////////////////////////////////////////////
-        private PluginConfig DefaultConfig()
+        private PluginConfig ConfigOrDefault(PluginConfig config)
         {
             return new PluginConfig
             {
-                Prefix = "[<color=yellow>Auto CodeLock</color>]",
-                UsePermission = false,
-                UseCost = true,
-                UseItemCost = true,
-                ItemCostList = new List<Hash<string, int>> { new Hash<string, int> { ["lock.code"] = 1 }, new Hash<string, int> { ["wood"] = 400, ["metal.fragments"] = 100 } },
-                ConfigVersion = Version.ToString()
+                Prefix = config?.Prefix ?? "[<color=yellow>Auto CodeLock</color>]",
+                UsePermission = config?.UsePermission ?? false,
+                UseCost = config?.UseCost ?? true,
+                UseItemCost = config?.UseItemCost ?? true,
+                AllowCodeLockOnShutter = config?.AllowCodeLockOnShutter ?? true,
+                ItemCostList = config?.ItemCostList ?? new List<Hash<string, int>> { new Hash<string, int> { ["lock.code"] = 1 }, new Hash<string, int> { ["wood"] = 400, ["metal.fragments"] = 100 } }
             };
         }
 
@@ -134,7 +99,6 @@ namespace Oxide.Plugins
         {
             _serverInitialized = true;
         }
-
 
         ////////////////////////////////////////////////////////////////////////
         /// <summary>
@@ -191,7 +155,7 @@ namespace Oxide.Plugins
             if (!_serverInitialized) return; //Server has not finished starting yet. Used to prevent this code from running when the server is starting up
 
             Door door = entity as Door;
-            if (door == null || door.LookupPrefab().name.Contains("shutter")) return; //Entity spawned is not a door or it's a shutter
+            if (door == null || (!_pluginConfig.AllowCodeLockOnShutter && door.LookupPrefab().name.Contains("shutter"))) return; //Entity spawned is not a door or it's a shutter
 
             BasePlayer player = BasePlayer.FindByID(door.OwnerID);
             if (player == null) return; //Failed to get the owner of the door
@@ -431,8 +395,8 @@ namespace Oxide.Plugins
             public bool UsePermission { get; set; }
             public bool UseCost { get; set; }
             public bool UseItemCost { get; set; }
+            public bool AllowCodeLockOnShutter { get; set; }
             public List<Hash<string, int>> ItemCostList { get; set; }
-            public string ConfigVersion { get; set; }
         }
 
         // ReSharper disable once ClassNeverInstantiated.Local

@@ -24,9 +24,12 @@ namespace Oxide.Plugins
         // ReSharper disable once UnusedMember.Local
         private void Loaded()
         {
-            LoadDefaultConfig();
-            LoadDataFile();
             LoadLang();
+
+            _pluginConfig = ConfigOrDefault(Config.ReadObject<PluginConfig>());
+            Config.WriteObject(_pluginConfig, true);
+
+            _storedData = Interface.Oxide.DataFileSystem.ReadObject<StoredData>("ZoneAutoDoors");
 
             permission.RegisterPermission(UsePermission, this);
         }
@@ -48,40 +51,36 @@ namespace Oxide.Plugins
             }, this);
         }
 
-
-        private void LoadDataFile()
-        {
-            try
-            {
-                _storedData = Interface.Oxide.DataFileSystem.ReadObject<StoredData>("ZoneAutoDoors");
-            }
-            catch
-            {
-                PrintWarning("Data File could not be loaded. Creating new File");
-                _storedData = new StoredData();
-            }
-        }
-
         ////////////////////////////////////////////////////////////////////////
         /// <summary>
-        /// load the plugins config
+        /// load the default config for this plugin
         /// </summary>
         /// ////////////////////////////////////////////////////////////////////////
         protected override void LoadDefaultConfig()
         {
-            _pluginConfig = new PluginConfig
-            {
-                Prefix = GetConfig("Prefix", "[<color=yellow>ZoneAutoDoors</color>]"),
-                UsePermission = GetConfig("UsePermission", false),
-            };
+            Config.WriteObject(ConfigOrDefault(null), true);
+        }
 
-            Config.WriteObject(_pluginConfig, true);
+        ////////////////////////////////////////////////////////////////////////
+        /// <summary>
+        /// Uses the values passed in from config. If any values are null it updates them with default values
+        /// </summary>
+        /// <param name="config">Config that has been loaded or null</param>
+        /// <returns>Config using values passed in from config default values</returns>
+        /// ////////////////////////////////////////////////////////////////////////
+        private PluginConfig ConfigOrDefault(PluginConfig config)
+        {
+            return new PluginConfig
+            {
+                Prefix = config?.Prefix ?? "[<color=yellow>ZoneAutoDoors</color>]",
+                UsePermission = config?.UsePermission ?? false,
+            };
         }
 
         // ReSharper disable once UnusedMember.Local
         private void OnServerInitialized()
         {
-            if(ZoneManager == null)
+            if (ZoneManager == null)
             {
                 PrintWarning("ZoneAutoDoors could not find ZoneManager. ZoneAutoDoors will not work");
             }
@@ -101,7 +100,7 @@ namespace Oxide.Plugins
                 return;
             }
 
-            switch(args[0])
+            switch (args[0])
             {
                 case "add":
                     if (args.Length != 3)
@@ -197,15 +196,13 @@ namespace Oxide.Plugins
 
             return false;
         }
-
-        T GetConfig<T>(string name, T value) => Config[name] == null ? value : (T)Convert.ChangeType(Config[name], typeof(T));
         #endregion
 
         #region Classes
         class PluginConfig
         {
-            public string Prefix {get; set; }
-            public bool UsePermission {get; set; }
+            public string Prefix { get; set; }
+            public bool UsePermission { get; set; }
         }
 
         class StoredData
