@@ -20,7 +20,6 @@
         "wood": 400 //and 400 wood
       }
     ],
-    "ConfigVersion": "0.0.1", //Version for this Config
     "Permission": false //Does the play need to have a set permission to use this plugin
   }
 ```
