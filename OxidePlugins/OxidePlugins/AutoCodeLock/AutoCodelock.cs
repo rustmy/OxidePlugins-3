@@ -175,12 +175,12 @@ namespace Oxide.Plugins
         {
             if (!_serverInitialized) return; //Server has not finished starting yet. Used to prevent this code from running when the server is starting up
 
-            if(entity is Door)
+            if (entity is Door)
             {
                 HandleDoorSpawn(entity as Door);
             }
 
-            if(entity is StorageContainer)
+            if (entity is StorageContainer)
             {
                 HandleContainerSpawn(entity as StorageContainer);
             }
@@ -213,7 +213,7 @@ namespace Oxide.Plugins
 
         private void HandleContainerSpawn(StorageContainer container)
         {
-            if (container == null) return; //Entity spawned is not a door or it's a shutter
+            if (container == null || (!container.LookupPrefab().name.Contains("box.wooden.large") && !container.LookupPrefab().name.Contains("woodbox_deployed"))) return; //Entity spawned is not a door or it's a shutter
 
             BasePlayer player = BasePlayer.FindByID(container.OwnerID);
             if (player == null) return; //Failed to get the owner of the door
@@ -262,7 +262,7 @@ namespace Oxide.Plugins
 
                         if (playerItem == null || playerItem.amount < item.Value) //If the player doesnt have the item or cannot afford
                         {
-                            canAfford = false; 
+                            canAfford = false;
                             break; //break out of the inner loop
                         }
                     }
@@ -293,7 +293,7 @@ namespace Oxide.Plugins
 
             if (_pluginConfig.UseItemCost) //Plugin is using items
             {
-                Hash<string,int> items = _pluginConfig.ItemCostList[costIndex]; //Hash of the items the player can afford
+                Hash<string, int> items = _pluginConfig.ItemCostList[costIndex]; //Hash of the items the player can afford
                 List<Item> collection = new List<Item>();
 
                 foreach (KeyValuePair<string, int> item in items) //Loop over the items and collect them from the player
@@ -317,17 +317,23 @@ namespace Oxide.Plugins
         {
             //Create a CodeLock
             BaseEntity lockentity = GameManager.server.CreateEntity(CodeLockPrefabLocation, Vector3.zero, new Quaternion());
-
-            if(door != null) lockentity.OnDeployed(door);
-            if(container != null) lockentity.OnDeployed(container);
+            string code = "";
+            if (door != null)
+            {
+                lockentity.OnDeployed(door);
+                code = SaveFormatToCode(_storedData.DoorCode[player.userID]);
+            }
+            if (container != null)
+            {
+                lockentity.OnDeployed(container);
+                code = SaveFormatToCode(_storedData.StorageCodes[player.userID]);
+            }
 
             //Add the player to the codelock whitelist
             List<ulong> whitelist = (List<ulong>)_whitelistField.GetValue(lockentity);
             whitelist.Add(player.userID);
             _whitelistField.SetValue(lockentity, whitelist);
 
-            //Retreive the code for the player and set it on the codelock
-            string code = SaveFormatToCode(_storedData.DoorCode[player.userID]);
             if (ValidCode(code))
             {
                 CodeLock @lock = lockentity.GetComponent<CodeLock>();
@@ -343,19 +349,19 @@ namespace Oxide.Plugins
             if (!lockentity) return;
             lockentity.gameObject.Identity();
 
-            if(door != null)
+            if (door != null)
             {
                 lockentity.SetParent(door, "lock");
                 lockentity.Spawn();
                 door.SetSlot(BaseEntity.Slot.Lock, lockentity);
             }
-            if(container != null)
+            if (container != null)
             {
                 lockentity.SetParent(container, "lock");
                 lockentity.Spawn();
                 container.SetSlot(BaseEntity.Slot.Lock, lockentity);
             }
-        }    
+        }
 
         ////////////////////////////////////////////////////////////////////////
         /// <summary>
