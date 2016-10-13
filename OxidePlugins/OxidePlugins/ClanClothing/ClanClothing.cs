@@ -472,6 +472,7 @@ namespace Oxide.Plugins
                 if (success == null) //Player does not have any server rewards or failed to call plugin
                 {
                     PrintToChat(player, $"{_pluginConfig.Prefix} {Lang("PluginFailed", player.UserIDString, "ServerRewards")}");
+                    PrintWarning(Lang("PluginFailed", player.UserIDString, "ServerRewards"));
                 }
             }
 
@@ -482,6 +483,7 @@ namespace Oxide.Plugins
                 if (success == null) //Failed to call Withdraw on the economics plugin
                 {
                     PrintToChat(player, $"{_pluginConfig.Prefix} {Lang("PluginFailed", player.UserIDString, "Economics money")}");
+                    PrintWarning(Lang("PluginFailed", player.UserIDString, "Economics money"));
                 }
             }
 

@@ -100,7 +100,7 @@ namespace Oxide.Plugins
                 return;
             }
 
-            switch (args[0])
+            switch (args[0].ToLower())
             {
                 case "add":
                     if (args.Length != 3)

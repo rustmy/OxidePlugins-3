@@ -273,20 +273,15 @@ namespace Oxide.Plugins
             SurveyData data = new SurveyData(entity.GetInstanceID()); //Create a SurveyData
             _activeSurveyCharges.Add(entity.GetInstanceID(), data);
 
-            Vector3 loc = entity.CenterPoint(); //Save where it was throw so if the server lags it Prevents Null Pointer Exception
+            data.Location = new Location(entity.CenterPoint()); //Save where it was throw so if the server lags it Prevents Null Pointer Exception
             int entityInstanceId = entity.GetInstanceID(); //Entity will be null later. Save the instance id to remove from _activeSurveyCharges
 
-            //Add the player to the stored data if they arent already
-            //if (_storedData.SurveyInfo[player.userID] == null) _storedData.SurveyInfo[player.userID] = new Hash<int, SurveyData>();
-
-            timer.Once(4.75f, () => // Set the SurveyData survey location to the location of the survey charge before exploding
+            timer.Once(4.5f, () => // Set the SurveyData survey location to the location of the survey charge before exploding
             {
-                // ReSharper disable once ConstantConditionalAccessQualifier
-                // ReSharper disable once ConstantNullCoalescingCondition
-                data.Location = new Location(entity?.CenterPoint() ?? loc);
+                if (entity != null) data.Location = new Location(entity.transform.position);
             });
 
-            timer.Once(5.25f, () => //After the survey charge explodes display all the items that came out of it
+            timer.Once(5.5f, () => //After the survey charge explodes display all the items that came out of it
             {
                 if (data.Items.Count > 0) //Check if charge produced any tiems
                 {
@@ -1090,7 +1085,7 @@ namespace Oxide.Plugins
         private void SendHelpText(BasePlayer player)
         {
             PrintToChat(player, @"[<color=yellow>Survey Info</color>] Help Text:\n
-                                When a player throws a survey charge it and it produces items i gets recored and saved\n
+                                When a player throws a survey charge it and it produces items i gets recorded and saved\n
                                 Commands:\n
                                 <color=yellow>/si</color> - Opens the Survey Info GUI\n
                                 Supports looking up / removing / giving your survey charge info");
