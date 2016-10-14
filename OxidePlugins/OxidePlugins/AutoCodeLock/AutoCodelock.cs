@@ -11,6 +11,7 @@ namespace Oxide.Plugins
     [Description("Adds a codelock to a placed door and set the code")]
     class AutoCodeLock : RustPlugin
     {
+        #region Class Fields
         private readonly FieldInfo _codelockField = typeof(CodeLock).GetField("code", BindingFlags.NonPublic | BindingFlags.Instance);
         readonly FieldInfo _whitelistField = typeof(CodeLock).GetField("whitelistPlayers", BindingFlags.Instance | BindingFlags.NonPublic);
 
@@ -20,7 +21,9 @@ namespace Oxide.Plugins
         private const string UsePermission = "autocodelock.use";
         private const string CodeLockPrefabLocation = "assets/prefabs/locks/keypad/lock.code.prefab";
         private bool _serverInitialized = false;
+        #endregion
 
+        #region Loading & Setup
         // ReSharper disable once UnusedMember.Local
         ////////////////////////////////////////////////////////////////////////
         /// <summary>
@@ -49,12 +52,12 @@ namespace Oxide.Plugins
             lang.RegisterMessages(new Dictionary<string, string>
             {
                 ["NoPermission"] = "You do not have permission to use this command",
-                ["Disabled"] = "You have disabled AutoCode\n To set again type /ac code",
+                ["Disabled"] = "You have disabled Auto Code Lock\n To set again type {0} code",
                 ["InvalidCode"] = "Your code '{0}' is not valid",
-                ["CodeSet"] = "You have set your codelock code to {0}",
-                ["HowToSet"] = "To set your codelock code type /ac 1234",
-                ["CanNotAfford"] = "You can not afford to use AutoCodelock",
-                ["ParseFailed"] = "Your code of {0} failed to be parse correctly."
+                ["CodeSet"] = "You have set your {0} codelock code to {1}",
+                ["HowToSet"] = "To set your codelock code type {0} 'code' Ex: {0} 1234",
+                ["CanNotAfford"] = "You can not afford to use Auto Code lock",
+                ["ParseFailed"] = "Your code of {0} failed to be parse correctly. Code will be not bet on the door"
             }, this);
         }
 
@@ -84,8 +87,44 @@ namespace Oxide.Plugins
                 UsePermission = config?.UsePermission ?? false,
                 UseCost = config?.UseCost ?? true,
                 UseItemCost = config?.UseItemCost ?? true,
-                AllowCodeLockOnShutter = config?.AllowCodeLockOnShutter ?? true,
-                ItemCostList = config?.ItemCostList ?? new List<Hash<string, int>> { new Hash<string, int> { ["lock.code"] = 1 }, new Hash<string, int> { ["wood"] = 400, ["metal.fragments"] = 100 } }
+                ItemCostList = config?.ItemCostList ?? new List<Hash<string, int>> { new Hash<string, int> { ["lock.code"] = 1 }, new Hash<string, int> { ["wood"] = 400, ["metal.fragments"] = 100 } },
+                AllowedDoors = new AllowedDoors
+                {
+                    All = config?.AllowedDoors?.All ?? false,
+                    CellGate = config?.AllowedDoors?.CellGate ?? true,
+                    HighExternalStoneGates = config?.AllowedDoors?.HighExternalStoneGates ?? true,
+                    HighExternalWoodGate = config?.AllowedDoors?.HighExternalWoodGate ?? true,
+                    LadderHatch = config?.AllowedDoors?.LadderHatch ?? true,
+                    SheetMetalDoor = config?.AllowedDoors?.SheetMetalDoor ?? true,
+                    SheetMetalDoubleDoor = config?.AllowedDoors?.SheetMetalDoubleDoor ?? true,
+                    ShopFront = config?.AllowedDoors?.ShopFront ?? true,
+                    Shutter = config?.AllowedDoors?.Shutter ?? false,
+                    TopTierDoor = config?.AllowedDoors?.TopTierDoor ?? true,
+                    TopTierDoubleDoor = config?.AllowedDoors?.TopTierDoubleDoor ?? true,
+                    WoodenDoor = config?.AllowedDoors?.WoodenDoor ?? true,
+                    WoodenDoubleDoor = config?.AllowedDoors?.WoodenDoubleDoor ?? true,
+                },
+                AllowedStorageContainers = new AllowedStorageContainers
+                {
+                    All = config?.AllowedStorageContainers?.All ?? false,
+                    AutoTurret = config?.AllowedStorageContainers?.AutoTurret ?? false,
+                    Campfire = config?.AllowedStorageContainers?.Campfire ?? false,
+                    CeilingLight = config?.AllowedStorageContainers?.CeilingLight ?? false,
+                    FishTrap = config?.AllowedStorageContainers?.FishTrap ?? false,
+                    Furnace = config?.AllowedStorageContainers?.Furnace ?? false,
+                    JackOLantern = config?.AllowedStorageContainers?.JackOLantern ?? false,
+                    Lantern = config?.AllowedStorageContainers?.Lantern ?? false,
+                    LargeFurnace = config?.AllowedStorageContainers?.LargeFurnace ?? false,
+                    LargeStocking = config?.AllowedStorageContainers?.LargeStocking ?? false,
+                    LargeWoodenBox = config?.AllowedStorageContainers?.LargeWoodenBox ?? true,
+                    Refinery = config?.AllowedStorageContainers?.Refinery ?? false,
+                    RepairBench = config?.AllowedStorageContainers?.RepairBench ?? false,
+                    ResearchTable = config?.AllowedStorageContainers?.ResearchTable ?? false,
+                    SmallStash = config?.AllowedStorageContainers?.SmallStash ?? false,
+                    SmallStocking = config?.AllowedStorageContainers?.SmallStocking ?? false,
+                    WaterBarrel = config?.AllowedStorageContainers?.WaterBarrel ?? false,
+                    WoodenBox = config?.AllowedStorageContainers?.WoodenBox ?? false
+                }
             };
         }
 
@@ -99,10 +138,12 @@ namespace Oxide.Plugins
         {
             _serverInitialized = true;
         }
+        #endregion
 
+        #region Chat Commands
         ////////////////////////////////////////////////////////////////////////
         /// <summary>
-        /// Chat command to set / remove the players codelock code
+        /// Chat command to set / remove the players door codelock code
         /// </summary>
         /// <param name="player"></param>
         /// <param name="command"></param>
@@ -113,12 +154,12 @@ namespace Oxide.Plugins
         // ReSharper disable once UnusedParameter.Local
         private void DoorCodeLockChatCommand(BasePlayer player, string command, string[] args)
         {
-            HandleChatCommand(player, args, _storedData.DoorCode);
+            HandleChatCommand(player, command, args, _storedData.DoorCode);
         }
 
         ////////////////////////////////////////////////////////////////////////
         /// <summary>
-        /// Chat command to set / remove the players codelock code
+        /// Chat command to set / remove the players storage codelock code
         /// </summary>
         /// <param name="player"></param>
         /// <param name="command"></param>
@@ -129,10 +170,19 @@ namespace Oxide.Plugins
         // ReSharper disable once UnusedParameter.Local
         private void StorageContainerChatCommand(BasePlayer player, string command, string[] args)
         {
-            HandleChatCommand(player, args, _storedData.StorageCodes);
+            HandleChatCommand(player, command, args, _storedData.StorageCodes);
         }
 
-        private void HandleChatCommand(BasePlayer player, string[] args, Hash<ulong, string> codeStorage)
+        ////////////////////////////////////////////////////////////////////////
+        /// <summary>
+        /// Handles the proccessing of both chat commands
+        /// </summary>
+        /// <param name="player">player running the command</param>
+        /// <param name="command">the command that was typed</param>
+        /// <param name="args">args passed by the player</param>
+        /// <param name="codeStorage">which Data hash the code belongs too</param>
+        /// ////////////////////////////////////////////////////////////////////////
+        private void HandleChatCommand(BasePlayer player, string command, string[] args, Hash<ulong, string> codeStorage)
         {
             if (!CheckPermission(player, UsePermission, true)) return;
 
@@ -141,7 +191,7 @@ namespace Oxide.Plugins
                 //Disable set autocode
                 case 0:
                     codeStorage[player.userID] = null;
-                    PrintToChat(player, $"{_pluginConfig.Prefix} {Lang("Disabled", player.UserIDString)}");
+                    PrintToChat(player, $"{_pluginConfig.Prefix} {Lang("Disabled", player.UserIDString, command)}");
                     break;
 
                 //Set autocode
@@ -152,18 +202,21 @@ namespace Oxide.Plugins
                         return;
                     }
                     codeStorage[player.userID] = ParseToSaveFormat(args[0]);
-                    PrintToChat(player, $"{_pluginConfig.Prefix} {Lang("CodeSet", player.UserIDString, args[0])}");
+                    if (command.Equals("adc")) PrintToChat(player, $"{_pluginConfig.Prefix} {Lang("CodeSet", "door", player.UserIDString, args[0])}");
+                    else PrintToChat(player, $"{_pluginConfig.Prefix} {Lang("CodeSet", player.UserIDString, "storage", args[0])}");
                     break;
 
                 //How to use AutoCodeLock
                 default:
-                    PrintToChat(player, $"{_pluginConfig.Prefix} {Lang("HowToSet", player.UserIDString)}");
+                    PrintToChat(player, $"{_pluginConfig.Prefix} {Lang("HowToSet", player.UserIDString, command)}");
                     break;
             }
 
             Interface.Oxide.DataFileSystem.WriteObject("AutoCodeLock", _storedData);
         }
+        #endregion
 
+        #region Oxide Hook
         ////////////////////////////////////////////////////////////////////////
         /// <summary>
         /// Oxide hook to detect when a door is placed
@@ -175,31 +228,41 @@ namespace Oxide.Plugins
         {
             if (!_serverInitialized) return; //Server has not finished starting yet. Used to prevent this code from running when the server is starting up
 
-            if (entity is Door)
-            {
-                HandleDoorSpawn(entity as Door);
-            }
+            Door door = entity as Door;
+            StorageContainer container = entity as StorageContainer;
+            if (door == null && container == null) return; //Not a door or container
 
-            if (entity is StorageContainer)
-            {
-                HandleContainerSpawn(entity as StorageContainer);
-            }
+            if (!AllowedEntity(door, container)) return; //Not allowed to put a code lock on that entity
+
+            BasePlayer player = BasePlayer.FindByID(door != null ? door.OwnerID : container.OwnerID);
+            if (player == null) return; //Could not find owner
+
+            string code = door != null ? _storedData.DoorCode[player.userID] : _storedData.StorageCodes[player.userID];
+            if (code == null) return; //Player has not set their autocodelock code yet
+
+            if (!HandleCost(player)) return; //Player cannot afford
+
+            BaseEntity spawnedEntity = door != null ? door as BaseEntity : container as BaseEntity;
+            
+            AddLockToEntity(player, spawnedEntity, code); //Add the lock to the entity
         }
+        #endregion
 
-        private void HandleDoorSpawn(Door door)
+        #region Can Afford & Take Cost
+        ////////////////////////////////////////////////////////////////////////
+        /// <summary>
+        /// Determines if that player can afford and takes the cost from the player.
+        /// </summary>
+        /// <param name="player"></param>
+        /// <returns>True if the player can afford, false otherwise</returns>
+        /// ////////////////////////////////////////////////////////////////////////
+        private bool HandleCost(BasePlayer player)
         {
-            if (door == null || (!_pluginConfig.AllowCodeLockOnShutter && door.LookupPrefab().name.Contains("shutter"))) return; //Entity spawned is not a door or it's a shutter
-
-            BasePlayer player = BasePlayer.FindByID(door.OwnerID);
-            if (player == null) return; //Failed to get the owner of the door
-
-            if (_storedData.DoorCode[player.userID] == null) return; //Player has not set their autocodelock code yet
-
             int index;
             if (!CanAfford(player, out index)) //Player cannot afford
             {
                 PrintToChat(player, $"{_pluginConfig.Prefix} {Lang("CanNotAfford", player.UserIDString)}");
-                return;
+                return false;
             }
 
             if (index != -1) //The code lock costs items to place
@@ -207,35 +270,8 @@ namespace Oxide.Plugins
                 TakeCost(player, index);
             }
 
-            AddLockToEntity(player, door, null); //Add the lock to the door
+            return true;
         }
-
-
-        private void HandleContainerSpawn(StorageContainer container)
-        {
-            if (container == null || (!container.LookupPrefab().name.Contains("box.wooden.large") && !container.LookupPrefab().name.Contains("woodbox_deployed"))) return; //Entity spawned is not a door or it's a shutter
-
-            BasePlayer player = BasePlayer.FindByID(container.OwnerID);
-            if (player == null) return; //Failed to get the owner of the door
-
-            if (_storedData.StorageCodes[player.userID] == null) return; //Player has not set their autocodelock code yet
-
-            int index;
-            if (!CanAfford(player, out index)) //Player cannot afford
-            {
-                PrintToChat(player, $"{_pluginConfig.Prefix} {Lang("CanNotAfford", player.UserIDString)}");
-                return;
-            }
-
-            if (index != -1) //The code lock costs items to place
-            {
-                TakeCost(player, index);
-            }
-
-            AddLockToEntity(player, null, container); //Add the lock to the door
-        }
-
-
         ////////////////////////////////////////////////////////////////////////
         /// <summary>
         /// Checks if the player can afford to have the codelock added
@@ -304,7 +340,118 @@ namespace Oxide.Plugins
                 }
             }
         }
+        #endregion
 
+        #region Code Lock Allowed on Entity
+
+        private bool AllowedEntity(Door door, StorageContainer container)
+        {
+            if (door != null)
+            {
+                if (_pluginConfig.AllowedDoors.All) return true;
+
+                switch (door.LookupPrefab().name)
+                {
+                    case "door.hinged.wood":
+                        return _pluginConfig.AllowedDoors.WoodenDoor;
+
+                    case "door.hinged.metal":
+                        return _pluginConfig.AllowedDoors.SheetMetalDoor;
+
+                    case "door.hinged.toptier":
+                        return _pluginConfig.AllowedDoors.TopTierDoor;
+
+                    case "door.double.hinged.wood":
+                        return _pluginConfig.AllowedDoors.WoodenDoubleDoor;
+
+                    case "door.double.hinged.metal":
+                        return _pluginConfig.AllowedDoors.SheetMetalDoubleDoor;
+
+                    case "door.double.hinged.toptier":
+                        return _pluginConfig.AllowedDoors.TopTierDoubleDoor;
+
+                    case "shutter.wood.a":
+                        return _pluginConfig.AllowedDoors.Shutter;
+
+                    case "floor.ladder.hatch":
+                        return _pluginConfig.AllowedDoors.LadderHatch;
+
+                    case "wall.frame.shopfront":
+                        return _pluginConfig.AllowedDoors.ShopFront;
+
+                    case "wall.frame.cell.gate":
+                        return _pluginConfig.AllowedDoors.CellGate;
+
+                    case "gates.external.high.wood":
+                        return _pluginConfig.AllowedDoors.HighExternalWoodGate;
+
+                    case "gates.external.high.stone":
+                        return _pluginConfig.AllowedDoors.HighExternalWoodGate;
+                }
+            }
+
+            if (container != null)
+            {
+                if (_pluginConfig.AllowedStorageContainers.All) return true;
+
+                switch (container.LookupPrefab().name)
+                {
+                    case "woodbox_deployed":
+                        return _pluginConfig.AllowedStorageContainers.WoodenBox;
+
+                    case "box.wooden.large":
+                        return _pluginConfig.AllowedStorageContainers.LargeWoodenBox;
+
+                    case "campfire":
+                        return _pluginConfig.AllowedStorageContainers.Campfire;
+
+                    case "furnace":
+                        return _pluginConfig.AllowedStorageContainers.Furnace;
+
+                    case "furnace.large":
+                        return _pluginConfig.AllowedStorageContainers.LargeFurnace;
+
+                    case "refinery_small_deployed":
+                        return _pluginConfig.AllowedStorageContainers.Refinery;
+
+                    case "stocking_small_deployed":
+                        return _pluginConfig.AllowedStorageContainers.SmallStocking;
+
+                    case "stocking_large_deployed":
+                        return _pluginConfig.AllowedStorageContainers.LargeStocking;
+
+                    case "repairbench_deployed":
+                        return _pluginConfig.AllowedStorageContainers.RepairBench;
+
+                    case "researchtable_deployed":
+                        return _pluginConfig.AllowedStorageContainers.ResearchTable;
+
+                    case "lantern.deployed":
+                        return _pluginConfig.AllowedStorageContainers.Lantern;
+
+                    case "WaterBarrel":
+                        return _pluginConfig.AllowedStorageContainers.WaterBarrel;
+
+                    case "autoturret_deployed":
+                        return _pluginConfig.AllowedStorageContainers.AutoTurret;
+
+                    case "jackolantern.happy":
+                    case "jackolantern.angry":
+                        return _pluginConfig.AllowedStorageContainers.JackOLantern;
+
+                    case "survivalfishtrap.deployed":
+                        return _pluginConfig.AllowedStorageContainers.FishTrap;
+
+                    case "small_stash_deployed":
+                        return _pluginConfig.AllowedStorageContainers.SmallStash;
+                }
+            }
+
+            return false;
+        }
+        #endregion
+
+        #region Adding Lock
         ////////////////////////////////////////////////////////////////////////
         /// <summary>
         /// Create a CodeLock add the players code to it and add them to the whitelist. Then place the codelock on the door
@@ -313,21 +460,12 @@ namespace Oxide.Plugins
         /// <param name="door">the door the codelock is going to be attached too</param>
         /// <param name="container">the container the codelock is going to be attached too</param>
         /// ////////////////////////////////////////////////////////////////////////
-        private void AddLockToEntity(BasePlayer player, Door door, StorageContainer container)
+        private void AddLockToEntity(BasePlayer player, BaseEntity entity, string code)
         {
             //Create a CodeLock
             BaseEntity lockentity = GameManager.server.CreateEntity(CodeLockPrefabLocation, Vector3.zero, new Quaternion());
-            string code = "";
-            if (door != null)
-            {
-                lockentity.OnDeployed(door);
-                code = SaveFormatToCode(_storedData.DoorCode[player.userID]);
-            }
-            if (container != null)
-            {
-                lockentity.OnDeployed(container);
-                code = SaveFormatToCode(_storedData.StorageCodes[player.userID]);
-            }
+
+            lockentity.OnDeployed(entity);
 
             //Add the player to the codelock whitelist
             List<ulong> whitelist = (List<ulong>)_whitelistField.GetValue(lockentity);
@@ -348,21 +486,14 @@ namespace Oxide.Plugins
             //Add the codelock to the door
             if (!lockentity) return;
             lockentity.gameObject.Identity();
+            lockentity.SetParent(entity, "lock");
+            lockentity.Spawn();
+            entity.SetSlot(BaseEntity.Slot.Lock, lockentity);
 
-            if (door != null)
-            {
-                lockentity.SetParent(door, "lock");
-                lockentity.Spawn();
-                door.SetSlot(BaseEntity.Slot.Lock, lockentity);
-            }
-            if (container != null)
-            {
-                lockentity.SetParent(container, "lock");
-                lockentity.Spawn();
-                container.SetSlot(BaseEntity.Slot.Lock, lockentity);
-            }
         }
+        #endregion
 
+        #region Code Handling
         ////////////////////////////////////////////////////////////////////////
         /// <summary>
         /// Makes sure the code entered by the player is a valid CodeLock code
@@ -422,6 +553,7 @@ namespace Oxide.Plugins
             array[index2] = temp;
             return new string(array);
         }
+        #endregion
 
         #region Helper Methods
         //////////////////////////////////////////////////////////////////////////////////////
@@ -466,14 +598,54 @@ namespace Oxide.Plugins
         /// Plugin Config
         /// </summary>
         /// ////////////////////////////////////////////////////////////////////////
-        class PluginConfig
+        private class PluginConfig
         {
             public string Prefix { get; set; }
             public bool UsePermission { get; set; }
             public bool UseCost { get; set; }
             public bool UseItemCost { get; set; }
-            public bool AllowCodeLockOnShutter { get; set; }
             public List<Hash<string, int>> ItemCostList { get; set; }
+            public AllowedDoors AllowedDoors { get; set; }
+            public AllowedStorageContainers AllowedStorageContainers { get; set; }
+        }
+
+        private class AllowedDoors
+        {
+            public bool All { get; set; }
+            public bool WoodenDoor { get; set; }
+            public bool SheetMetalDoor { get; set; }
+            public bool TopTierDoor { get; set; }
+            public bool WoodenDoubleDoor { get; set; }
+            public bool SheetMetalDoubleDoor { get; set; }
+            public bool TopTierDoubleDoor { get; set; }
+            public bool Shutter { get; set; }
+            public bool LadderHatch { get; set; }
+            public bool CellGate { get; set; }
+            public bool ShopFront { get; set; }
+            public bool HighExternalWoodGate { get; set; }
+            public bool HighExternalStoneGates { get; set; }
+        }
+
+        private class AllowedStorageContainers
+        {
+            public bool All { get; set; }
+            public bool WoodenBox { get; set; }
+            public bool LargeWoodenBox { get; set; }
+            public bool Campfire { get; set; }
+            public bool Furnace { get; set; }
+            public bool LargeFurnace { get; set; }
+            public bool Refinery { get; set; }
+            public bool SmallStocking { get; set; }
+            public bool LargeStocking { get; set; }
+            public bool RepairBench { get; set; }
+            public bool ResearchTable { get; set; }
+            public bool Lantern { get; set; }
+            public bool CeilingLight { get; set; }
+            public bool WaterBarrel { get; set; }
+            public bool AutoTurret { get; set; }
+            public bool JackOLantern { get; set; }
+            public bool FishTrap { get; set; }
+            public bool SmallStash { get; set; }
         }
 
         // ReSharper disable once ClassNeverInstantiated.Local
