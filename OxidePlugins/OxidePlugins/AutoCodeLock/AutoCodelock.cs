@@ -609,9 +609,11 @@ namespace Oxide.Plugins
             public AllowedStorageContainers AllowedStorageContainers { get; set; }
         }
 
+        ////////////////////////////////////////////////////////////////////////
         /// <summary>
         /// Config Class for doors
         /// </summary>
+        /// ////////////////////////////////////////////////////////////////////////
         private class AllowedDoors
         {
             public bool All { get; set; }
@@ -629,9 +631,11 @@ namespace Oxide.Plugins
             public bool HighExternalStoneGates { get; set; }
         }
 
+        ////////////////////////////////////////////////////////////////////////
         /// <summary>
         /// Config class for storage containers
         /// </summary>
+        /// ////////////////////////////////////////////////////////////////////////
         private class AllowedStorageContainers
         {
             public bool All { get; set; }
