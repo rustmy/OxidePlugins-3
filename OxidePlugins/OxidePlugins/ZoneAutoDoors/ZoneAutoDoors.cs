@@ -130,6 +130,9 @@ namespace Oxide.Plugins
                     PrintToChat(player, $"{_pluginConfig.Prefix} {Lang("Removed", player.UserIDString, args[1])}");
                     break;
 
+                default:
+                    PrintToChat(player, $"{_pluginConfig.Prefix} {Lang("InvalidSyntax", player.UserIDString)}");
+                    break;
             }
 
             Interface.Oxide.DataFileSystem.WriteObject("ZoneAutoDoors", _storedData);

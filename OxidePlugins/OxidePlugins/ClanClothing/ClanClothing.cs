@@ -311,7 +311,7 @@ namespace Oxide.Plugins
 
                     foreach (KeyValuePair<string, int> item in _pluginConfig.ItemCostList)
                     {
-                        message += $"   {ItemManager.FindItemDefinition(item.Key).displayName.translated} - {item.Value}\n";
+                        message += $"  - {ItemManager.FindItemDefinition(item.Key).displayName.translated} - {item.Value}\n";
                     }
                 }
 
@@ -646,7 +646,6 @@ namespace Oxide.Plugins
                                 <color=yellow>/cc_add</color> - Allows the clan owner to set their current clothing as the clan clothing\n
                                 <color=yellow>/cc_remove</color> - Allows the clan owner to remove their current clan clothing\n
                                 This will also save the skin of the clothing item added");
-                                
         }
         #endregion
     }
