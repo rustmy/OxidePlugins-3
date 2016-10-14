@@ -8,7 +8,7 @@ namespace Oxide.Plugins
 {
     // ReSharper disable once UnusedMember.Global
     [Info("AutoCodeLock", "MJSU", "0.0.1")]
-    [Description("Adds a codelock to a placed door and set the code")]
+    [Description("Adds a codelock to a placed door or storage container and set the code")]
     class AutoCodeLock : RustPlugin
     {
         #region Class Fields
@@ -219,7 +219,7 @@ namespace Oxide.Plugins
         #region Oxide Hook
         ////////////////////////////////////////////////////////////////////////
         /// <summary>
-        /// Oxide hook to detect when a door is placed
+        /// Oxide hook to detect when a door or storage container is placed
         /// </summary>
         /// <param name="entity"></param>
         /// ////////////////////////////////////////////////////////////////////////
@@ -609,6 +609,9 @@ namespace Oxide.Plugins
             public AllowedStorageContainers AllowedStorageContainers { get; set; }
         }
 
+        /// <summary>
+        /// Config Class for doors
+        /// </summary>
         private class AllowedDoors
         {
             public bool All { get; set; }
@@ -626,6 +629,9 @@ namespace Oxide.Plugins
             public bool HighExternalStoneGates { get; set; }
         }
 
+        /// <summary>
+        /// Config class for storage containers
+        /// </summary>
         private class AllowedStorageContainers
         {
             public bool All { get; set; }
