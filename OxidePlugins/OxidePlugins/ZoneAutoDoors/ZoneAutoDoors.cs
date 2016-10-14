@@ -1,6 +1,5 @@
 ﻿using Oxide.Core;
 using Oxide.Core.Plugins;
-using System;
 using System.Collections.Generic;
 
 // ReSharper disable once CheckNamespace
@@ -44,7 +43,9 @@ namespace Oxide.Plugins
             lang.RegisterMessages(new Dictionary<string, string>
             {
                 ["NoPermission"] = "You do not have permission to use this command",
-                ["InvalidSytax"] = "Invalid Sytax (/zad add/remove ZoneId seconds)",
+                ["InvalidSytax"] = "Invalid syntax - /zad add/remove ZoneId seconds",
+                ["AddSyntax"] = "Invalid add syntax - /zad add ZoneId seconds",
+                ["RemoveSyntax"] = "Invalid remove syntax - /zad remove ZoneId seconds,
                 ["InvalidSeconds"] = "The time you set of {0} is not valid",
                 ["Added"] = "You have added zone {0} with a delay of {1}",
                 ["Removed"] = "You have removed zone {0}"
@@ -105,7 +106,7 @@ namespace Oxide.Plugins
                 case "add":
                     if (args.Length != 3)
                     {
-                        PrintToChat(player, $"{_pluginConfig.Prefix} {Lang("InvalidSyntax", player.UserIDString)}");
+                        PrintToChat(player, $"{_pluginConfig.Prefix} {Lang("AddSyntax", player.UserIDString)}");
                         return;
                     }
 
@@ -123,7 +124,7 @@ namespace Oxide.Plugins
                 case "remove":
                     if (args.Length != 2)
                     {
-                        PrintToChat(player, $"{_pluginConfig.Prefix} {Lang("InvalidSyntax", player.UserIDString)}");
+                        PrintToChat(player, $"{_pluginConfig.Prefix} {Lang("RemoveSyntax", player.UserIDString)}");
                         return;
                     }
                     _storedData.ZoneTimes.Remove(args[1]);
