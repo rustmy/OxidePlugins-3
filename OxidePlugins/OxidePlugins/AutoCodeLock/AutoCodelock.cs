@@ -3,6 +3,9 @@ using System.Reflection;
 using Oxide.Core;
 using UnityEngine;
 
+//Todo: Add Clans support
+//Todo: Add RustIO friends support
+
 // ReSharper disable once CheckNamespace
 namespace Oxide.Plugins
 {
@@ -20,7 +23,7 @@ namespace Oxide.Plugins
 
         private const string UsePermission = "autocodelock.use";
         private const string CodeLockPrefabLocation = "assets/prefabs/locks/keypad/lock.code.prefab";
-        private bool _serverInitialized = false;
+        private bool _serverInitialized;
         #endregion
 
         #region Loading & Setup
@@ -202,8 +205,10 @@ namespace Oxide.Plugins
                         return;
                     }
                     codeStorage[player.userID] = ParseToSaveFormat(args[0]);
-                    if (command.Equals("adc")) PrintToChat(player, $"{_pluginConfig.Prefix} {Lang("CodeSet", "door", player.UserIDString, args[0])}");
-                    else PrintToChat(player, $"{_pluginConfig.Prefix} {Lang("CodeSet", player.UserIDString, "storage", args[0])}");
+                    PrintToChat(player,
+                        command.Equals("adc")
+                            ? $"{_pluginConfig.Prefix} {Lang("CodeSet", player.UserIDString, "door", args[0])}"
+                            : $"{_pluginConfig.Prefix} {Lang("CodeSet", player.UserIDString, "storage", args[0])}");
                     break;
 
                 //How to use AutoCodeLock
@@ -237,12 +242,12 @@ namespace Oxide.Plugins
             BasePlayer player = BasePlayer.FindByID(door != null ? door.OwnerID : container.OwnerID);
             if (player == null) return; //Could not find owner
 
-            string code = door != null ? _storedData.DoorCode[player.userID] : _storedData.StorageCodes[player.userID];
+            string code = SaveFormatToCode(door != null ? _storedData.DoorCode[player.userID] : _storedData.StorageCodes[player.userID]);
             if (code == null) return; //Player has not set their autocodelock code yet
 
             if (!HandleCost(player)) return; //Player cannot afford
 
-            BaseEntity spawnedEntity = door != null ? door as BaseEntity : container as BaseEntity;
+            BaseEntity spawnedEntity = door != null ? (BaseEntity) door : (BaseEntity)container;
             
             AddLockToEntity(player, spawnedEntity, code); //Add the lock to the entity
         }
@@ -343,7 +348,6 @@ namespace Oxide.Plugins
         #endregion
 
         #region Code Lock Allowed on Entity
-
         private bool AllowedEntity(Door door, StorageContainer container)
         {
             if (door != null)
