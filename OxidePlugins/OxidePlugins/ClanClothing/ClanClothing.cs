@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Linq;
+using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
 using Oxide.Core;
 using Oxide.Core.Plugins;
@@ -38,11 +39,7 @@ namespace Oxide.Plugins
             _storedData = Interface.Oxide.DataFileSystem.ReadObject<StoredData>("ClanClothing");
 
             //Add the chat commands from the config
-            cmd.AddChatCommand(_pluginConfig.Commands["CheckCost"], this, CheckCostChatCommand);
-            cmd.AddChatCommand(_pluginConfig.Commands["ViewClanClothing"], this, ViewClanClothingChatCommand);
-            cmd.AddChatCommand(_pluginConfig.Commands["ClaimCommand"], this, RedeemChatCommand);
-            cmd.AddChatCommand(_pluginConfig.Commands["AddCommand"], this, AddChatCommand);
-            cmd.AddChatCommand(_pluginConfig.Commands["RemoveCommand"], this, RemoveChatCommand);
+            cmd.AddChatCommand(_pluginConfig.ChatCommand, this, ClanClothingChatCommand);
 
             permission.RegisterPermission(UsePermission, this);
         }
@@ -74,8 +71,7 @@ namespace Oxide.Plugins
                 ["CanAfford"] = "You <color=green>CAN</color> afford this",
                 ["CanNotAfford"] = "You <color=red>CAN NOT</color> afford this",
                 ["NoCost"] = "There is no cost to claim Clan Clothing",
-                ["HowToClaim"] = "type <color=yellow>/{0}</color> to claim your clans clothing",
-                ["HowToView"] = "type <color=yellow>/{0}</color> to view your clans clothing",
+                ["HowTo"] = "type <color=yellow>/{0} {1}</color> to {1} your clans clothing",
                 ["NoClothingAdded"] = "No clothing items were added. Clan clothing will not be saved"
             }, this);
         }
@@ -107,7 +103,6 @@ namespace Oxide.Plugins
                 UsePermissions = config?.UsePermissions ?? false,
                 WipeDataOnMapWipe = config?.WipeDataOnMapWipe ?? true,
                 UseCost = config?.UseCost ?? false,
-                UseServerRewards = config?.UseServerRewards ?? false,
                 ServerRewardsCost = config?.ServerRewardsCost ?? 0,
                 UseItems = config?.UseItems ?? false,
                 ItemCostList = config?.ItemCostList ?? new Hash<string, int>
@@ -116,16 +111,8 @@ namespace Oxide.Plugins
                     ["stones"] = 50,
                     ["metal.fragments"] = 25
                 },
-                UseEconomics = config?.UseEconomics ?? false,
                 EconomicsCost = config?.EconomicsCost ?? 0,
-                Commands = config?.Commands ?? new Hash<string, string>
-                {
-                    ["CheckCost"] = "cc_check",
-                    ["ViewClanClothing"] = "cc_view",
-                    ["ClaimCommand"] = "cc_claim",
-                    ["AddCommand"] = "cc_add",
-                    ["RemoveCommand"] = "cc_remove"
-                }
+                ChatCommand = config?.ChatCommand ?? "clanclothing"
             };
         }
 
@@ -161,12 +148,12 @@ namespace Oxide.Plugins
 
             if (_pluginConfig.UseCost) //Config is set to use cost
             {
-                if (_pluginConfig.UseServerRewards && ServerRewards == null) //Server Rewards set to use but plugin is not present
+                if (_pluginConfig.ServerRewardsCost > 0 && ServerRewards == null) //Server Rewards set to use but plugin is not present
                 {
                     PrintWarning($"ServerRewards set to use but failed to load ServerRewards");
                 }
 
-                if (_pluginConfig.UseEconomics && Economics == null) //Economics set to use but plugin is not present
+                if (_pluginConfig.EconomicsCost > 0 && Economics == null) //Economics set to use but plugin is not present
                 {
                     PrintWarning($"Economics set to use but failed to load Economics");
                 }
@@ -185,21 +172,111 @@ namespace Oxide.Plugins
         #endregion
 
         #region Chat Commands
+        /// <summary>
+        /// Chat Command for Clan Clothing
+        /// </summary>
+        /// <param name="player">player who called it</param>
+        /// <param name="command"></param>
+        /// <param name="args"></param>
+        private void ClanClothingChatCommand(BasePlayer player, string command, string[] args)
+        {
+            if (!CheckPermission(player, UsePermission, true)) return; //Make sure player has permission
+
+            if(args.Length != 1) // No arguments were passed send help text
+            {
+                SendHelpText(player);
+                return;
+            }
+
+            string playerClanTag = GetPlayerClanTag(player);
+            if (playerClanTag == null) return; //Failed to get Clan Tag for player
+
+            switch (args[0].ToLower())
+            {
+                case "add":
+                    AddClothing(player, playerClanTag);
+                    break;
+
+                case "remove":
+                    RemoveClothing(player, playerClanTag);
+                    break;
+
+                case "claim":
+                    ClaimClothing(player, playerClanTag);
+                    break;
+
+                case "view":
+                    ViewClothing(player, playerClanTag);
+                    break;
+
+                case "check":
+                    CheckClothingCost(player);
+                    break;
+            }
+        }
+        #endregion
+
+        #region Clan Clothing Chat Respone
+        ///////////////////////////////////////////////////////////////
+        /// <summary>
+        /// Allows the owner of a clan to add their clan clothing
+        /// </summary>
+        /// <param name="player"></param>
+        /// <param name="playerClanTag">Clan tag for the player</param>
+        /// ///////////////////////////////////////////////////////////////
+        private void AddClothing(BasePlayer player, string playerClanTag)
+        {
+            if (!IsPlayerClanOwner(player, playerClanTag)) return; //Player is not the clan owner
+            List<ClothingItem> clanClothing = new List<ClothingItem>();
+
+            foreach (Item item in player.inventory.containerWear.itemList) //Add the items from the owners wear container to the clans clothing list
+            {
+                if (_pluginConfig.ExcludedItems.Contains(item.info.shortname)) //If and item is on the excluded item list
+                {
+                    PrintToChat($"{_pluginConfig.Prefix} {ItemManager.FindItemDefinition(item.info.shortname).displayName.translated} {Lang("ExcludedItem", player.UserIDString)}");
+                }
+                else //item gets added to the clan clothing list
+                {
+                    clanClothing.Add(new ClothingItem(item.info.itemid, item.skin));
+                }
+            }
+
+            if(clanClothing.Count == 0)
+            {
+                PrintToChat($"{_pluginConfig.Prefix} {Lang("NoClothingAdded", player.UserIDString)}");
+                return;
+            }
+
+            _storedData.ClanClothing[playerClanTag] = clanClothing;
+
+            PrintToChat(player, $"{_pluginConfig.Prefix} {Lang("Add", player.UserIDString)}");
+            Interface.Oxide.DataFileSystem.WriteObject("ClanClothing", _storedData);
+        }
+
+        ///////////////////////////////////////////////////////////////
+        /// <summary>
+        /// Allows the owner of a clan to remove their clan clothing
+        /// </summary>
+        /// <param name="player"></param>
+        /// <param name="playerClanTag">Clan tag for the player</param>
+        /// ///////////////////////////////////////////////////////////////
+        private void RemoveClothing(BasePlayer player, string playerClanTag)
+        {
+            if (!IsPlayerClanOwner(player, playerClanTag)) return; //Player is not the clan owner
+
+            _storedData.ClanClothing[playerClanTag] = null; //Remove the clan from the plugin data
+            PrintToChat(player, $"{_pluginConfig.Prefix} {Lang("Remove", player.UserIDString)}");
+        }
+
         ///////////////////////////////////////////////////////////////
         /// <summary>
         /// Allows players in a clan to claim their clan clothing
         /// </summary>
         /// <param name="player"></param>
-        /// <param name="command"></param>
-        /// <param name="args"></param>
+        /// <param name="playerClanTag">Clan tag for the player</param>
         /// ///////////////////////////////////////////////////////////////
-        private void RedeemChatCommand(BasePlayer player, string command, string[] args)
+        private void ClaimClothing(BasePlayer player, string playerClanTag)
         {
-            if (!CheckPermission(player, UsePermission, true)) return; //Make sure player has permission
-
-            string playerClanTag = GetPlayerClanTag(player);
-            if (playerClanTag == null) return; //Failed to get Clan Tag for player
-
             List<ClothingItem> itemsToGive = _storedData.ClanClothing[playerClanTag]; //Get's the Clothing for the Players Clan
 
             if (itemsToGive == null || itemsToGive.Count == 0) //No clan clothing is configured or contains no items
@@ -221,63 +298,31 @@ namespace Oxide.Plugins
 
         ///////////////////////////////////////////////////////////////
         /// <summary>
-        /// Allows the owner of a clan to add their clan clothing
+        /// Player command to see their clans clothing
+        /// If a skin is used will show the skin name
         /// </summary>
         /// <param name="player"></param>
-        /// <param name="command"></param>
-        /// <param name="args"></param>
+        /// <param name="playerClanTag">Clan tag for the player</param>
         /// ///////////////////////////////////////////////////////////////
-        private void AddChatCommand(BasePlayer player, string command, string[] args)
+        private void ViewClothing(BasePlayer player, string playerClanTag)
         {
-            if (!CheckPermission(player, UsePermission, true)) return; //Make sure player has permission
-
-            string playerClanTag = GetPlayerClanTag(player);
-            if (playerClanTag == null) return; //Failed to get Clan Tag for player
-
-            if (!IsPlayerClanOwner(player, playerClanTag)) return; //Player is not the clan owner
-
-            _storedData.ClanClothing[playerClanTag] = new List<ClothingItem>();
-            foreach (Item item in player.inventory.containerWear.itemList) //Add the items from the owners wear container to the clans clothing list
+            if(_storedData.ClanClothing[playerClanTag] == null || _storedData.ClanClothing[playerClanTag].Count == 0) //Players clan has not setup clan clothing
             {
-                if (_pluginConfig.ExcludedItems.Contains(item.info.shortname)) //If and item is on the excluded item list
-                {
-                    PrintToChat($"{_pluginConfig.Prefix} {ItemManager.FindItemDefinition(item.info.shortname).displayName.translated} {Lang("ExcludedItem", player.UserIDString)}");
-                }
-                else //item gets added to the clan clothing list
-                {
-                    _storedData.ClanClothing[playerClanTag].Add(new ClothingItem(item.info.itemid, item.skin));
-                }
-            }
-
-            if(_storedData.ClanClothing[playerClanTag].Count == 0)
-            {
-                PrintToChat($"{_pluginConfig.Prefix} {Lang("NoClothingAdded", player.UserIDString)}");
+                PrintToChat(player, $"{_pluginConfig.Prefix} {Lang("NotAvaliable", player.UserIDString)}");
                 return;
             }
 
-            PrintToChat(player, $"{_pluginConfig.Prefix} {Lang("Add", player.UserIDString)}");
-            Interface.Oxide.DataFileSystem.WriteObject("ClanClothing", _storedData);
-        }
+            //Prepare the message to the player to display their clans clothing
+            string message = $"{_pluginConfig.Prefix} Clan clothing for [<color=orange>{playerClanTag}</color>]: \n";
+            foreach(ClothingItem clothingItem in _storedData.ClanClothing[playerClanTag])
+            {
+                ItemDefinition item = ItemManager.FindItemDefinition(clothingItem.ItemId); //Information about the clothing item
+                ItemSkinDirectory.Skin skin = ItemSkinDirectory.Instance.skins.Where(skinItem => skinItem.id == clothingItem.SkinId).FirstOrDefault();
 
-        ///////////////////////////////////////////////////////////////
-        /// <summary>
-        /// Allows the owner of a clan to remove their clan clothing
-        /// </summary>
-        /// <param name="player"></param>
-        /// <param name="command"></param>
-        /// <param name="args"></param>
-        /// ///////////////////////////////////////////////////////////////
-        private void RemoveChatCommand(BasePlayer player, string command, string[] args)
-        {
-            if (!CheckPermission(player, UsePermission, true)) return;
-
-            string playerClanTag = GetPlayerClanTag(player);
-            if (playerClanTag == null) return; //Failed to get Clan Tag for player
-
-            if (!IsPlayerClanOwner(player, playerClanTag)) return; //Player is not the clan owner
-
-            _storedData.ClanClothing[playerClanTag] = null; //Remove the clan from the plugin data
-            PrintToChat(player, $"{_pluginConfig.Prefix} {Lang("Remove", player.UserIDString)}");
+                message += "    " + (clothingItem.SkinId == 0 ? item.displayName.translated : skin.invItem.displayName.translated) + "\n";
+            }
+            Puts(message);
+            PrintToChat(player, message);
         }
 
         ///////////////////////////////////////////////////////////////
@@ -285,22 +330,18 @@ namespace Oxide.Plugins
         /// Chat Command for play to check how much Clan Clothing costs
         /// </summary>
         /// <param name="player"></param>
-        /// <param name="command"></param>
-        /// <param name="args"></param>
         /// ///////////////////////////////////////////////////////////////
-        private void CheckCostChatCommand(BasePlayer player, string command, string[] args)
+        private void CheckClothingCost(BasePlayer player)
         {
-            if (!CheckPermission(player, UsePermission, true)) return; //Player does not have permission
-
             string message = _pluginConfig.Prefix + "\n"; //Put the plugin prefix at the begining
             if (_pluginConfig.UseCost) //Use cost is true
             {
-                if (_pluginConfig.UseServerRewards) //Use server rewards is true
+                if (_pluginConfig.ServerRewardsCost > 0) //Use server rewards is true
                 {
-                    message += $"{Lang("PluginCost", player.UserIDString, "ServerReward", _pluginConfig.ServerRewardsCost)}\n";
+                    message += $"{Lang("PluginCost", player.UserIDString, "ServerRewards", _pluginConfig.ServerRewardsCost)}\n";
                 }
 
-                if (_pluginConfig.UseEconomics) //Use economics is true
+                if (_pluginConfig.EconomicsCost > 0) //Use economics is true
                 {
                     message += $"{Lang("PluginCost", player.UserIDString, "Economics", _pluginConfig.EconomicsCost)}\n";
                 }
@@ -324,61 +365,12 @@ namespace Oxide.Plugins
             }
 
             PrintToChat(player, message);
-            PrintToChat(player, $"{_pluginConfig.Prefix} {Lang("HowToClaim", player.UserIDString, _pluginConfig.Commands["ClaimCommand"])}");
-            PrintToChat(player, $"{_pluginConfig.Prefix} {Lang("HowToView", player.UserIDString, _pluginConfig.Commands["ViewClanClothing"])}");
+            PrintToChat(player, $"{_pluginConfig.Prefix} {Lang("HowTo", player.UserIDString, $"{_pluginConfig.ChatCommand}", "claim")}");
+            PrintToChat(player, $"{_pluginConfig.Prefix} {Lang("HowTo", player.UserIDString, $"{_pluginConfig.ChatCommand}", "view")}");
         }
-
-        ///////////////////////////////////////////////////////////////
-        /// <summary>
-        /// Player command to see their clans clothing
-        /// If a skin is used will show the skin name
-        /// </summary>
-        /// <param name="player"></param>
-        /// <param name="command"></param>
-        /// <param name="args"></param>
-        /// ///////////////////////////////////////////////////////////////
-        private void ViewClanClothingChatCommand(BasePlayer player, string command, string[] args)
-        {
-            if (!CheckPermission(player, UsePermission, true)) return; //Player does not have permission
-
-            string playerClanTag = GetPlayerClanTag(player);
-            if (playerClanTag == null) return; //Failed to get Clan Tag for player
-
-            if(_storedData.ClanClothing[playerClanTag] == null) //Players clan has not setup clan clothing
-            {
-                PrintToChat(player, $"{_pluginConfig.Prefix} {Lang("NotAvaliable", player.UserIDString)}");
-                return;
-            }
-
-            //Prepare the message to the player to display their clans clothing
-            string message = _pluginConfig.Prefix + "\n";
-            foreach(ClothingItem clothingItem in _storedData.ClanClothing[playerClanTag])
-            {
-                ItemDefinition item = ItemManager.FindItemDefinition(clothingItem.ItemId); //Information about the clothing item
-
-                if (clothingItem.SkinId == 0) //No skin is set
-                {
-                    message += $"   {item.displayName.translated}\n";
-                }
-                else //skin is set
-                {
-                    foreach(var skin in ItemSkinDirectory.ForItem(item)) //Loop over all the skins for the item
-                    {
-                        if(skin.id == clothingItem.SkinId) //If the skin id's match add the skin display name to the message
-                        {
-                            message += $"   {skin.invItem.displayName.translated}\n";
-                            break;
-                        }
-                    }
-                }
-            }
-
-            PrintToChat(player, message);
-        }
-
         #endregion
 
-        #region Can Afford & Take Items and Points
+        #region Player cost handling
         ///////////////////////////////////////////////////////////////
         /// <summary>
         /// Determines if the player can afford the clan clothing
@@ -388,9 +380,12 @@ namespace Oxide.Plugins
         /// ///////////////////////////////////////////////////////////////
         private bool CanPlayerAfford(BasePlayer player)
         {
-            if (!_pluginConfig.UseCost) return true; //Use cost is false
+            bool canPlayerAfford = true;
+            string message = _pluginConfig.Prefix + ":\n";
 
-            if (_pluginConfig.UseServerRewards) //Use server rewards
+            if (!_pluginConfig.UseCost) return canPlayerAfford; //Use cost is false
+
+            if (_pluginConfig.ServerRewardsCost > 0) //Use server rewards
             {
                 if (ServerRewards != null) //Server rewards is loaded
                 {
@@ -398,14 +393,13 @@ namespace Oxide.Plugins
 
                     if (playerPoints == null) //failed to retrieve the player server reward points
                     {
-                        PrintToChat(player, $"{_pluginConfig.Prefix} {Lang("SRProfileNotFound", player.UserIDString)}");
-                        return false;
+                        message += $"{Lang("SRProfileNotFound", player.UserIDString)}\n";
+                        canPlayerAfford = false;
                     }
-
-                    if ((int)(playerPoints) < _pluginConfig.ServerRewardsCost) //The player cannot afford the cost in server rewards
+                    else if ((int)(playerPoints) < _pluginConfig.ServerRewardsCost) //The player cannot afford the cost in server rewards
                     {
-                        PrintToChat(player, $"{_pluginConfig.Prefix} {Lang("SRCantAfford", player.UserIDString, (int)(playerPoints), _pluginConfig.ServerRewardsCost)}");
-                        return false;
+                        message += $"{Lang("SRCantAfford", player.UserIDString, (int)(playerPoints), _pluginConfig.ServerRewardsCost)}\n";
+                        canPlayerAfford = false;
                     }
                 }
                 else //Server rewards is set to true but failed to load
@@ -414,7 +408,7 @@ namespace Oxide.Plugins
                 }
             }
 
-            if (_pluginConfig.UseEconomics) //Use Economics
+            if (_pluginConfig.EconomicsCost > 0) //Use Economics
             {
                 if (Economics != null) //Economics is loaded
                 {
@@ -423,8 +417,8 @@ namespace Oxide.Plugins
 
                     if (playerMoney < _pluginConfig.EconomicsCost) //player cannot afford the economics money
                     {
-                        PrintToChat(player, $"{_pluginConfig.Prefix} {Lang("ECantAfford", player.UserIDString, playerMoney, _pluginConfig.EconomicsCost)}");
-                        return false;
+                        message += $"{Lang("ECantAfford", player.UserIDString, playerMoney, _pluginConfig.EconomicsCost)}\n";
+                        canPlayerAfford = false;
                     }
                 }
                 else //Economics is set to true but failed to load
@@ -436,22 +430,23 @@ namespace Oxide.Plugins
             if (_pluginConfig.UseItems) //Use items is set to true
             {
                 bool canItemAfford = true;
-                string message = _pluginConfig.Prefix + ":\n";
                 foreach (KeyValuePair<string, int> item in _pluginConfig.ItemCostList) //Loop over the ItemCostList set in the config
                 {
                     Item playerInventoryItem = player?.inventory?.FindItemID(item.Key); //Find the item in the players inventory
 
                     if (playerInventoryItem == null || playerInventoryItem.amount < item.Value) //Player does not have the item or they do not have enough
                     {
-                        PrintToChat(player, $"   {Lang("ItemCantAfford", player?.UserIDString, ItemManager.FindItemDefinition(item.Key).displayName.translated, playerInventoryItem?.amount ?? 0, item.Value)}");
+                        if (canItemAfford) message += "Item's you can't afford:\n";
+                        message += $"   {Lang("ItemCantAfford", player?.UserIDString, ItemManager.FindItemDefinition(item.Key).displayName.translated, playerInventoryItem?.amount ?? 0, item.Value)}\n";
                         canItemAfford = false;
                     }
                 }
 
-                if (!canItemAfford) return false;
+                if (!canItemAfford) canPlayerAfford = false;
             }
 
-            return true; //Player can afford
+            if (!canPlayerAfford) PrintToChat(player, message);
+            return canPlayerAfford; //Player can afford
         }
 
         ///////////////////////////////////////////////////////////////
@@ -465,7 +460,7 @@ namespace Oxide.Plugins
         {
             if (!_pluginConfig.UseCost) return; //Use cost is false
 
-            if (_pluginConfig.UseServerRewards && ServerRewards != null) //Use ServerRewards and Server Rewards is loaded
+            if (_pluginConfig.ServerRewardsCost > 0 && ServerRewards != null) //Use ServerRewards and Server Rewards is loaded
             {
                 object success = ServerRewards?.Call("TakePoints", player, _pluginConfig.ServerRewardsCost); //Take the server reward points from the player
 
@@ -476,7 +471,7 @@ namespace Oxide.Plugins
                 }
             }
 
-            if (_pluginConfig.UseEconomics && Economics != null) //Use Economics and Economics is loaded
+            if (_pluginConfig.EconomicsCost > 0 && Economics != null) //Use Economics and Economics is loaded
             {
                 object success = Economics?.Call("Withdraw", player, _pluginConfig.EconomicsCost); //Take the economics money from the player
 
@@ -598,13 +593,11 @@ namespace Oxide.Plugins
             public bool UsePermissions { get; set; }
             public bool WipeDataOnMapWipe { get; set; }
             public bool UseCost { get; set; }
-            public bool UseServerRewards { get; set; }
             public int ServerRewardsCost { get; set; }
+            public double EconomicsCost { get; set; }
             public bool UseItems { get; set; }
             public Hash<string, int> ItemCostList { get; set; }
-            public bool UseEconomics { get; set; }
-            public double EconomicsCost { get; set; }
-            public Hash<string, string> Commands { get; set; }
+            public string ChatCommand { get; set; }
         }
 
         ///////////////////////////////////////////////////////////////
@@ -614,6 +607,7 @@ namespace Oxide.Plugins
         /// ///////////////////////////////////////////////////////////////
         private class StoredData
         {
+            //Hash<ClanTag, List<ClothingItems>>
             public Hash<string, List<ClothingItem>> ClanClothing = new Hash<string, List<ClothingItem>>();
         }
 
@@ -624,8 +618,8 @@ namespace Oxide.Plugins
         /// ///////////////////////////////////////////////////////////////
         private class ClothingItem
         {
-            public int ItemId;
-            public int SkinId;
+            public int ItemId { get; }
+            public int SkinId { get; }
 
             public ClothingItem(int itemId, int skinId)
             {
@@ -636,16 +630,17 @@ namespace Oxide.Plugins
         #endregion
 
         #region Help Text
-        // ReSharper disable once UnusedMember.Local
         private void SendHelpText(BasePlayer player)
         {
-            PrintToChat(player, @"[<color=yellow>Clan Clothing</color>] Help Text:\n
-                                Allows clan owners to set their clans clothing. Clan members can then claim their clan clothing\n
-                                <color=yellow>/cc</color> - Check if you can afford clan clothing\n
-                                <color=yellow>/cc_claim</color> - Claim your clans clothing\n
-                                <color=yellow>/cc_add</color> - Allows the clan owner to set their current clothing as the clan clothing\n
-                                <color=yellow>/cc_remove</color> - Allows the clan owner to remove their current clan clothing\n
-                                This will also save the skin of the clothing item added");
+            PrintToChat(player, "[<color=yellow>Clan Clothing</color>] Help Text:\n"+
+                                "Allows clan owners to set their clans clothing. Clan members can then claim their clans clothing.\n"+
+                                 "This will also save the skin of the clothing item added."+
+                                $" - <color=yellow>/{_pluginConfig.ChatCommand}</color> - to view this help text\n" +
+                                $" - <color=yellow>/{_pluginConfig.ChatCommand} check</color> - Check if you can afford clan clothing\n"+
+                                $" - <color=yellow>/{_pluginConfig.ChatCommand} claim</color> - Claim your clans clothing\n"+
+                                $" - <color=yellow>/{_pluginConfig.ChatCommand} view</color> - Shows the player the clothing for their clan\n" +
+                                $" - <color=yellow>/{_pluginConfig.ChatCommand} add</color> - Allows the clan owner to set their current clothing as the clan clothing\n"+
+                                $" - <color=yellow>/{_pluginConfig.ChatCommand} remove</color> - Allows the clan owner to remove their current clan clothing\n");
         }
         #endregion
     }

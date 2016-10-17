@@ -1,12 +1,11 @@
 ﻿using Oxide.Core;
-using System;
 using System.Collections.Generic;
 
 namespace Oxide.Plugins
 {
     [Info("BasePlugin", "MJSU", "0.0.1")]
     [Description("Is a plugin")]
-    class Plugin : RustPlugin
+    class BasePlugin : RustPlugin
     {
         #region Class Fields
         private StoredData _storedData; //Plugin Data
@@ -14,7 +13,7 @@ namespace Oxide.Plugins
 
         private const string UsePermission = "plugin.use";
         #endregion
-
+        
         #region Setup & Loading
         private void Loaded()
         {
