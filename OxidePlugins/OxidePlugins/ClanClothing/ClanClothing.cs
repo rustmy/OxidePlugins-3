@@ -321,7 +321,7 @@ namespace Oxide.Plugins
 
                 message += "    " + (clothingItem.SkinId == 0 ? item.displayName.translated : skin.invItem.displayName.translated) + "\n";
             }
-            Puts(message);
+
             PrintToChat(player, message);
         }
 
