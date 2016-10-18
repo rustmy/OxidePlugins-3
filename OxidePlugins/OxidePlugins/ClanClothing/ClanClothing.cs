@@ -105,12 +105,7 @@ namespace Oxide.Plugins
                 ServerRewardsCost = config?.ServerRewardsCost ?? 0,
                 EconomicsCost = config?.EconomicsCost ?? 0,
                 UseItems = config?.UseItems ?? false,
-                ItemCostList = config?.ItemCostList ?? new Hash<string, int>
-                {
-                    ["wood"] = 100,
-                    ["stones"] = 50,
-                    ["metal.fragments"] = 25
-                },
+                ItemCostList = config?.ItemCostList ?? new Hash<string, int> { ["wood"] = 100, ["stones"] = 50, ["metal.fragments"] = 25 },
                 ChatCommand = config?.ChatCommand ?? "clanclothing"
             };
         }
@@ -149,15 +144,16 @@ namespace Oxide.Plugins
             {
                 if (_pluginConfig.ServerRewardsCost > 0 && ServerRewards == null) //Server Rewards set to use but plugin is not present
                 {
-                    PrintWarning($"ServerRewards set to use but failed to load ServerRewards");
+                    PrintWarning($"ServerRewards cost is greater then 0 but plugin was not found");
                 }
 
                 if (_pluginConfig.EconomicsCost > 0 && Economics == null) //Economics set to use but plugin is not present
                 {
-                    PrintWarning($"Economics set to use but failed to load Economics");
+                    PrintWarning($"Economics cost is greater then 0 but plugin was not found");
                 }
             }
         }
+
         ///////////////////////////////////////////////////////////////
         /// <summary>
         /// Plugin Unloading Save DataFile
@@ -248,7 +244,7 @@ namespace Oxide.Plugins
 
             foreach (Item item in player.inventory.containerWear.itemList) //Add the items from the owners wear container to the clans clothing list
             {
-                if (playerHasExcludePermission && _pluginConfig.ExcludedItems.Contains(item.info.shortname)) //If and item is on the excluded item list
+                if (!playerHasExcludePermission && _pluginConfig.ExcludedItems.Contains(item.info.shortname)) //If and item is on the excluded item list
                 {
                     PrintToChat($"{_pluginConfig.Prefix} {ItemManager.FindItemDefinition(item.info.shortname).displayName.translated} {Lang("ExcludedItem", player.UserIDString)}");
                 }
