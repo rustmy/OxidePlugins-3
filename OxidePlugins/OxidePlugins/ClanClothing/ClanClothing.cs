@@ -102,7 +102,7 @@ namespace Oxide.Plugins
             {
                 ExcludedItems = config?.ExcludedItems ?? new List<string> { "metal.facemask", "metal.plate.torso", "roadsign.jacket", "roadsign.kilt" },
                 Prefix = config?.Prefix ?? "[<color=yellow>Clan Clothing</color>]",
-                WipeDataOnMapWipe = config?.WipeDataOnMapWipe ?? true,
+                WipeClanClothingOnMapWipe = config?.WipeClanClothingOnMapWipe ?? true,
                 UseCost = config?.UseCost ?? false,
                 ServerRewardsCost = config?.ServerRewardsCost ?? 0,
                 EconomicsCost = config?.EconomicsCost ?? 0,
@@ -127,7 +127,7 @@ namespace Oxide.Plugins
         // ReSharper disable once UnusedParameter.Local
         private void OnNewSave(string name)
         {
-            if (_pluginConfig.WipeDataOnMapWipe)
+            if (_pluginConfig.WipeClanClothingOnMapWipe)
             {
                 PrintWarning("Map wipe detected - Wiping Clan Clothing Data");
                 _storedData = new StoredData();
@@ -181,7 +181,7 @@ namespace Oxide.Plugins
         /// <param name="args"></param>
         private void ClanClothingChatCommand(BasePlayer player, string command, string[] args)
         {
-            if (!CheckPermission(player, UsePermission)) //Make sure player has permission
+            if (!HasPermission(player, UsePermission)) //Make sure player has permission
             {
                 PrintToChat(player, Lang("NoPermission", player.UserIDString));
                 return; 
@@ -245,7 +245,7 @@ namespace Oxide.Plugins
                 return; 
             }
 
-            bool playerHasExcludePermission = CheckPermission(player, IgnoreExclusionPermission); //So we don't have to call check permission multiple times
+            bool playerHasExcludePermission = HasPermission(player, IgnoreExclusionPermission); //So we don't have to call check permission multiple times
             List<ClothingItem> clanClothing = new List<ClothingItem>();
 
             foreach (Item item in player.inventory.containerWear.itemList) //Add the items from the owners wear container to the clans clothing list
@@ -585,7 +585,7 @@ namespace Oxide.Plugins
         /// <param name="perm">Permission to check for</param>
         /// <returns></returns>
         /// //////////////////////////////////////////////////////////////////////////////////////
-        private bool CheckPermission(BasePlayer player, string perm) => permission.UserHasPermission(player.UserIDString, perm);
+        private bool HasPermission(BasePlayer player, string perm) => permission.UserHasPermission(player.UserIDString, perm);
         #endregion
 
         #region Classes
@@ -598,7 +598,7 @@ namespace Oxide.Plugins
         {
             public List<string> ExcludedItems { get; set; }
             public string Prefix { get; set; }
-            public bool WipeDataOnMapWipe { get; set; }
+            public bool WipeClanClothingOnMapWipe { get; set; }
             public bool UseCost { get; set; }
             public int ServerRewardsCost { get; set; }
             public double EconomicsCost { get; set; }
