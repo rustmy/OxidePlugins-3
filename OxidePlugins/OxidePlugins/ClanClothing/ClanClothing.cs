@@ -333,10 +333,9 @@ namespace Oxide.Plugins
             string message = $"{_pluginConfig.Prefix} Clan clothing for [<color=orange>{playerClanTag}</color>]: \n";
             foreach(ClothingItem clothingItem in _storedData.ClanClothing[playerClanTag])
             {
-                ItemDefinition item = ItemManager.FindItemDefinition(clothingItem.ItemId); //Information about the clothing item
-                ItemSkinDirectory.Skin skin = ItemSkinDirectory.Instance.skins.Where(skinItem => skinItem.id == clothingItem.SkinId).FirstOrDefault();
-
-                message += " - " + (clothingItem.SkinId == 0 ? item.displayName.translated : skin.invItem.displayName.translated) + "\n";
+                message += " - " + (clothingItem.SkinId == 0 ? 
+                                        ItemManager.FindItemDefinition(clothingItem.ItemId).displayName.translated : 
+                                        ItemSkinDirectory.Instance.skins.Where(skinItem => skinItem.id == clothingItem.SkinId).FirstOrDefault().invItem.displayName.translated) + "\n";
             }
 
             PrintToChat(player, message);
@@ -369,7 +368,7 @@ namespace Oxide.Plugins
 
                     foreach (KeyValuePair<string, int> item in _pluginConfig.ItemCostList)
                     {
-                        message += $"  - {ItemManager.FindItemDefinition(item.Key).displayName.translated} - {item.Value}\n";
+                        message += $" - {ItemManager.FindItemDefinition(item.Key).displayName.translated} - {item.Value}\n";
                     }
                 }
 
