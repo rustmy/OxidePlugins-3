@@ -25,6 +25,7 @@ namespace Oxide.Plugins
         private PluginConfig _pluginConfig; //Plugin Config
 
         private const string UsePermission = "clanclothing.use"; //Plugin use permission
+        private const string IgnoreExclusionPermission = "clanclothing.ignoreexclude";
         #endregion
 
         #region Loading & Setup
@@ -42,6 +43,7 @@ namespace Oxide.Plugins
             cmd.AddChatCommand(_pluginConfig.ChatCommand, this, ClanClothingChatCommand);
 
             permission.RegisterPermission(UsePermission, this);
+            permission.RegisterPermission(IgnoreExclusionPermission, this);
         }
 
         /// <summary>
@@ -100,10 +102,10 @@ namespace Oxide.Plugins
             {
                 ExcludedItems = config?.ExcludedItems ?? new List<string> { "metal.facemask", "metal.plate.torso", "roadsign.jacket", "roadsign.kilt" },
                 Prefix = config?.Prefix ?? "[<color=yellow>Clan Clothing</color>]",
-                UsePermissions = config?.UsePermissions ?? false,
                 WipeDataOnMapWipe = config?.WipeDataOnMapWipe ?? true,
                 UseCost = config?.UseCost ?? false,
                 ServerRewardsCost = config?.ServerRewardsCost ?? 0,
+                EconomicsCost = config?.EconomicsCost ?? 0,
                 UseItems = config?.UseItems ?? false,
                 ItemCostList = config?.ItemCostList ?? new Hash<string, int>
                 {
@@ -111,7 +113,6 @@ namespace Oxide.Plugins
                     ["stones"] = 50,
                     ["metal.fragments"] = 25
                 },
-                EconomicsCost = config?.EconomicsCost ?? 0,
                 ChatCommand = config?.ChatCommand ?? "clanclothing"
             };
         }
@@ -180,7 +181,11 @@ namespace Oxide.Plugins
         /// <param name="args"></param>
         private void ClanClothingChatCommand(BasePlayer player, string command, string[] args)
         {
-            if (!CheckPermission(player, UsePermission, true)) return; //Make sure player has permission
+            if (!CheckPermission(player, UsePermission)) //Make sure player has permission
+            {
+                PrintToChat(player, Lang("NoPermission", player.UserIDString));
+                return; 
+            }
 
             if(args.Length != 1) // No arguments were passed send help text
             {
@@ -189,7 +194,11 @@ namespace Oxide.Plugins
             }
 
             string playerClanTag = GetPlayerClanTag(player);
-            if (playerClanTag == null) return; //Failed to get Clan Tag for player
+            if (playerClanTag == null) //Failed to get Clan Tag for player
+            {
+                PrintToChat(player, Lang("NotInClan", player.UserIDString));
+                return; 
+            }
 
             switch (args[0].ToLower())
             {
@@ -212,6 +221,10 @@ namespace Oxide.Plugins
                 case "check":
                     CheckClothingCost(player);
                     break;
+
+                default:
+                    SendHelpText(player);
+                    break;
             }
         }
         #endregion
@@ -226,12 +239,18 @@ namespace Oxide.Plugins
         /// ///////////////////////////////////////////////////////////////
         private void AddClothing(BasePlayer player, string playerClanTag)
         {
-            if (!IsPlayerClanOwner(player, playerClanTag)) return; //Player is not the clan owner
+            if (!IsPlayerClanOwner(player, playerClanTag)) //Player is not the clan owner
+            {
+                PrintToChat(player, Lang("NotOwner", player.UserIDString));
+                return; 
+            }
+
+            bool playerHasExcludePermission = CheckPermission(player, IgnoreExclusionPermission); //So we don't have to call check permission multiple times
             List<ClothingItem> clanClothing = new List<ClothingItem>();
 
             foreach (Item item in player.inventory.containerWear.itemList) //Add the items from the owners wear container to the clans clothing list
             {
-                if (_pluginConfig.ExcludedItems.Contains(item.info.shortname)) //If and item is on the excluded item list
+                if (playerHasExcludePermission && _pluginConfig.ExcludedItems.Contains(item.info.shortname)) //If and item is on the excluded item list
                 {
                     PrintToChat($"{_pluginConfig.Prefix} {ItemManager.FindItemDefinition(item.info.shortname).displayName.translated} {Lang("ExcludedItem", player.UserIDString)}");
                 }
@@ -262,7 +281,11 @@ namespace Oxide.Plugins
         /// ///////////////////////////////////////////////////////////////
         private void RemoveClothing(BasePlayer player, string playerClanTag)
         {
-            if (!IsPlayerClanOwner(player, playerClanTag)) return; //Player is not the clan owner
+            if (!IsPlayerClanOwner(player, playerClanTag)) //Player is not the clan owner
+            {
+                PrintToChat(player, Lang("NotOwner", player.UserIDString));
+                return;
+            }
 
             _storedData.ClanClothing[playerClanTag] = null; //Remove the clan from the plugin data
             PrintToChat(player, $"{_pluginConfig.Prefix} {Lang("Remove", player.UserIDString)}");
@@ -319,7 +342,7 @@ namespace Oxide.Plugins
                 ItemDefinition item = ItemManager.FindItemDefinition(clothingItem.ItemId); //Information about the clothing item
                 ItemSkinDirectory.Skin skin = ItemSkinDirectory.Instance.skins.Where(skinItem => skinItem.id == clothingItem.SkinId).FirstOrDefault();
 
-                message += "    " + (clothingItem.SkinId == 0 ? item.displayName.translated : skin.invItem.displayName.translated) + "\n";
+                message += " - " + (clothingItem.SkinId == 0 ? item.displayName.translated : skin.invItem.displayName.translated) + "\n";
             }
 
             PrintToChat(player, message);
@@ -365,8 +388,6 @@ namespace Oxide.Plugins
             }
 
             PrintToChat(player, message);
-            PrintToChat(player, $"{_pluginConfig.Prefix} {Lang("HowTo", player.UserIDString, $"{_pluginConfig.ChatCommand}", "claim")}");
-            PrintToChat(player, $"{_pluginConfig.Prefix} {Lang("HowTo", player.UserIDString, $"{_pluginConfig.ChatCommand}", "view")}");
         }
         #endregion
 
@@ -558,26 +579,13 @@ namespace Oxide.Plugins
 
         //////////////////////////////////////////////////////////////////////////////////////
         /// <summary>
-        /// Checks if the user has the given permissions. Displays an error to the user if ShowText is true
+        /// Checks if the user has the given permissions
         /// </summary>
         /// <param name="player">Player to be checked</param>
         /// <param name="perm">Permission to check for</param>
-        /// <param name="showText">Should display no permission</param>
         /// <returns></returns>
         /// //////////////////////////////////////////////////////////////////////////////////////
-        private bool CheckPermission(BasePlayer player, string perm, bool showText)
-        {
-            if (!_pluginConfig.UsePermissions || permission.UserHasPermission(player.UserIDString, perm)) //Use permission is false or player has permission
-            {
-                return true;
-            }
-            else if (showText) //player doesn't have permission. Should we show them a no permission message
-            {
-                PrintToChat(player, $"{Lang(_pluginConfig.Prefix)} {Lang("NoPermission", player.UserIDString)}");
-            }
-
-            return false;
-        }
+        private bool CheckPermission(BasePlayer player, string perm) => permission.UserHasPermission(player.UserIDString, perm);
         #endregion
 
         #region Classes
@@ -590,7 +598,6 @@ namespace Oxide.Plugins
         {
             public List<string> ExcludedItems { get; set; }
             public string Prefix { get; set; }
-            public bool UsePermissions { get; set; }
             public bool WipeDataOnMapWipe { get; set; }
             public bool UseCost { get; set; }
             public int ServerRewardsCost { get; set; }
