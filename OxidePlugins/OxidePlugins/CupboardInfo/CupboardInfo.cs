@@ -58,8 +58,7 @@ namespace Oxide.Plugins
         {
             return new PluginConfig
             {
-                Prefix = config?.Prefix ?? "[<color=yellow>Cupboard Info</color>]",
-                UsePermission =  config?.UsePermission ?? false
+                Prefix = config?.Prefix ?? "[<color=yellow>Cupboard Info</color>]"
             };
         }
         #endregion
@@ -75,7 +74,7 @@ namespace Oxide.Plugins
         // ReSharper disable once UnusedMember.Local
         void OnCupboardClearList(BuildingPrivlidge privilege, BasePlayer player)
         {
-            if(CheckPermission(player, UsePermission, false))
+            if(HasPermission(player, UsePermission))
                 PrintToChat(player, $"{_pluginConfig.Prefix} {Lang("Cleared", player.UserIDString)}");
         }
 
@@ -90,7 +89,7 @@ namespace Oxide.Plugins
         void OnCupboardAuthorize(BuildingPrivlidge privilege, BasePlayer player)
         {
             if (privilege.authorizedPlayers.Count <= 0) return;
-            if (!CheckPermission(player, UsePermission, false)) return;
+            if (!HasPermission(player, UsePermission)) return;
             PrintToChat(player, $"{_pluginConfig.Prefix} {Lang("Authorized", player.UserIDString)}");
             DisplayCupboardData(privilege, player);
         }
@@ -106,7 +105,7 @@ namespace Oxide.Plugins
         void OnCupboardDeauthorize(BuildingPrivlidge privilege, BasePlayer player)
         {
             if (privilege.authorizedPlayers.Count <= 0) return;
-            if (!CheckPermission(player, UsePermission, false)) return;
+            if (!HasPermission(player, UsePermission)) return;
             PrintToChat(player, $"{_pluginConfig.Prefix} {Lang("StillAuthoried", player.UserIDString)}");
             DisplayCupboardData(privilege, player);
         }
@@ -126,7 +125,7 @@ namespace Oxide.Plugins
             {
                 if (user.userid != player.userID)
                 {
-                    PrintToChat(player, $" {user.userid} {user.username}");
+                    PrintToChat(player, $" - {user.userid} {user.username}");
                 }
             }
         }
@@ -147,27 +146,13 @@ namespace Oxide.Plugins
 
         //////////////////////////////////////////////////////////////////////////////////////
         /// <summary>
-        /// Checks if the user has the given permissions. Displays an error to the user if ShowText is true
+        /// Checks if the user has the given permissions
         /// </summary>
         /// <param name="player">Player to be checked</param>
         /// <param name="perm">Permission to check for</param>
-        /// <param name="showText">Should display no permission</param>
         /// <returns></returns>
         /// //////////////////////////////////////////////////////////////////////////////////////
-        private bool CheckPermission(BasePlayer player, string perm, bool showText)
-        {
-            if (!_pluginConfig.UsePermission || permission.UserHasPermission(player.UserIDString, perm))
-            {
-                return true;
-            }
-
-            if (showText) //player doesn't have permission. Should we show them a no permission message
-            {
-                PrintToChat(player, $"{Lang(_pluginConfig.Prefix)} {Lang("NoPermission", player.UserIDString)}");
-            }
-
-            return false;
-        }
+        private bool HasPermission(BasePlayer player, string perm) => permission.UserHasPermission(player.UserIDString, perm);
         #endregion
 
         #region Classes
@@ -179,7 +164,6 @@ namespace Oxide.Plugins
         class PluginConfig
         {
             public string Prefix { get; set; }
-            public bool UsePermission { get; set; }
         }
         #endregion
     }

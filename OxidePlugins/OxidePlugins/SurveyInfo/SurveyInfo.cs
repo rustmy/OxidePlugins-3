@@ -112,7 +112,6 @@ namespace Oxide.Plugins
                 Prefix = config?.Prefix ?? "[<color=yellow>Survey Info</color>]",
                 SaveIntervalInSeconds = config?.SaveIntervalInSeconds ?? 600f,
                 SurveyIdDisplayLengthInSeconds = config?.SurveyIdDisplayLengthInSeconds ?? 150f,
-                UsePermission = config?.UsePermission ?? false,
                 UiColors = config?.UiColors ?? new UIColors(),
                 SurveyUiConfig = config?.SurveyUiConfig ??  new SurveyDataUIConfig(),
                 GiveToUiConfig = config?.GiveToUiConfig ?? new GiveToUIConfig(),
@@ -302,7 +301,7 @@ namespace Oxide.Plugins
                     }
                     data.Score = (float)((score / _bestPossibleSurveyScore) * 100);
 
-                    if (CheckPermission(player, UsePermission, false)) //If the player has permission display info to the user
+                    if (HasPermission(player, UsePermission)) //If the player has permission display info to the user
                     {
                         DisplaySurveyLoot(player, data);
                         DrawSurveyIdAtSurveyLocation(data, player);
@@ -331,7 +330,11 @@ namespace Oxide.Plugins
         // ReSharper disable once UnusedParameter.Local
         private void SurveyInfoChatCommand(BasePlayer player, string command, string[] args)
         {
-            if (!CheckPermission(player, UsePermission, true)) return;
+            if (!HasPermission(player, UsePermission))
+            {
+                PrintToChat(player, Lang("NoPermission", player.UserIDString));
+                return;
+            }
             OpenUi(player);
         }
         #endregion
@@ -382,26 +385,13 @@ namespace Oxide.Plugins
 
         //////////////////////////////////////////////////////////////////////////////////////
         /// <summary>
-        /// Checks if the user has the given permissions. Displays an error to the user if ShowText is true
+        /// Checks if the user has the given permissions
         /// </summary>
         /// <param name="player">Player to be checked</param>
         /// <param name="perm">Permission to check for</param>
-        /// <param name="showText">Should display no permission</param>
         /// <returns></returns>
         /// //////////////////////////////////////////////////////////////////////////////////////
-        private bool CheckPermission(BasePlayer player, string perm, bool showText)
-        {
-            if (!_pluginConfig.UsePermission || permission.UserHasPermission(player.UserIDString, perm))
-            {
-                return true;
-            }
-            else if (showText) //player doesn't have permission. Should we show them a no permission message
-            {
-                PrintToChat(player, $"{Lang(_pluginConfig.Prefix)} {Lang("NoPermission", player.UserIDString)}");
-            }
-
-            return false;
-        }
+        private bool HasPermission(BasePlayer player, string perm) => permission.UserHasPermission(player.UserIDString, perm);
         #endregion
 
         #region Gather Manager Config Loading
@@ -627,7 +617,11 @@ namespace Oxide.Plugins
 
             BasePlayer player = arg.connection.player as BasePlayer;
             if (!player) return; //Not a player
-            if (!CheckPermission(player, UsePermission, true)) return; //Doesn't have permission
+            if (!HasPermission(player, UsePermission))
+            {
+                PrintToChat(player, Lang("NoPermission", player.UserIDString));
+                return;
+            }
 
             int surveyId;
             if (!int.TryParse(arg.Args[0], out surveyId)) return; //Not an integer
@@ -1020,7 +1014,6 @@ namespace Oxide.Plugins
             public string Prefix { get; set; }
             public float SaveIntervalInSeconds { get; set; }
             public float SurveyIdDisplayLengthInSeconds { get; set; }
-            public bool UsePermission { get; set; }
             public UIColors UiColors { get; set; }
             public SurveyDataUIConfig SurveyUiConfig { get; set; }
             public GiveToUIConfig GiveToUiConfig { get; set; }

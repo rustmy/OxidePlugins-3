@@ -87,7 +87,6 @@ namespace Oxide.Plugins
             return new PluginConfig
             {
                 Prefix = config?.Prefix ?? "[<color=yellow>Auto Code Lock</color>]",
-                UsePermission = config?.UsePermission ?? false,
                 UseCost = config?.UseCost ?? true,
                 UseItemCost = config?.UseItemCost ?? true,
                 ItemCostList = config?.ItemCostList ?? new List<Hash<string, int>> { new Hash<string, int> { ["lock.code"] = 1 }, new Hash<string, int> { ["wood"] = 400, ["metal.fragments"] = 100 } },
@@ -187,7 +186,11 @@ namespace Oxide.Plugins
         /// ////////////////////////////////////////////////////////////////////////
         private void HandleChatCommand(BasePlayer player, string command, string[] args, Hash<ulong, string> codeStorage)
         {
-            if (!CheckPermission(player, UsePermission, true)) return;
+            if (!HasPermission(player, UsePermission)) //Make sure player has permission
+            {
+                PrintToChat(player, Lang("NoPermission", player.UserIDString));
+                return;
+            }
 
             switch (args.Length)
             {
@@ -573,26 +576,13 @@ namespace Oxide.Plugins
 
         //////////////////////////////////////////////////////////////////////////////////////
         /// <summary>
-        /// Checks if the user has the given permissions. Displays an error to the user if ShowText is true
+        /// Checks if the user has the given permissions
         /// </summary>
         /// <param name="player">Player to be checked</param>
         /// <param name="perm">Permission to check for</param>
-        /// <param name="showText">Should display no permission</param>
         /// <returns></returns>
         /// //////////////////////////////////////////////////////////////////////////////////////
-        private bool CheckPermission(BasePlayer player, string perm, bool showText)
-        {
-            if (!_pluginConfig.UsePermission || permission.UserHasPermission(player.UserIDString, perm))
-            {
-                return true;
-            }
-            else if (showText) //player doesn't have permission. Should we show them a no permission message
-            {
-                PrintToChat(player, $"{Lang(_pluginConfig.Prefix)} {Lang("NoPermission", player.UserIDString)}");
-            }
-
-            return false;
-        }
+        private bool HasPermission(BasePlayer player, string perm) => permission.UserHasPermission(player.UserIDString, perm);
         #endregion
 
         #region Classes
@@ -605,7 +595,6 @@ namespace Oxide.Plugins
         private class PluginConfig
         {
             public string Prefix { get; set; }
-            public bool UsePermission { get; set; }
             public bool UseCost { get; set; }
             public bool UseItemCost { get; set; }
             public List<Hash<string, int>> ItemCostList { get; set; }
