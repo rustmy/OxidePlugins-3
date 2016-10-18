@@ -64,7 +64,6 @@ namespace Oxide.Plugins
                 ["NotOwner"] = "Only the clan owner can use this command",
                 ["SRProfileNotFound"] = " Could not find a ServerRewards Profile for you",
                 ["SRCantAfford"] = "You do not have enough ServerRewards to claim your clans clothing.\n Have: {0} Requires: {1}",
-                ["EProfileNotFound"] = "Could not get your Economics money",
                 ["ECantAfford"] = "You do not have enough Economics money to claim your clans clothing.\n Have: {0} Requires: {1}",
                 ["ItemCantAfford"] = "You do not have enough {0} Have: {1} Requires: {2}",
                 ["PluginFailed"] = "Something went wrong while taking your {0}",
@@ -73,7 +72,6 @@ namespace Oxide.Plugins
                 ["CanAfford"] = "You <color=green>CAN</color> afford this",
                 ["CanNotAfford"] = "You <color=red>CAN NOT</color> afford this",
                 ["NoCost"] = "There is no cost to claim Clan Clothing",
-                ["HowTo"] = "type <color=yellow>/{0} {1}</color> to {1} your clans clothing",
                 ["NoClothingAdded"] = "No clothing items were added. Clan clothing will not be saved"
             }, this);
         }
