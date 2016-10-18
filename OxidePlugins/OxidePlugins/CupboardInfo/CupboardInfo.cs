@@ -1,7 +1,5 @@
 ﻿using System.Collections.Generic;
 using ProtoBuf;
-using Oxide.Core;
-using System;
 
 // ReSharper disable once CheckNamespace
 namespace Oxide.Plugins
@@ -21,6 +19,7 @@ namespace Oxide.Plugins
         /// Plugin is being loaded
         /// </summary>
         /// ///////////////////////////////////////////////////////////////
+        // ReSharper disable once UnusedMember.Local
         private void Loaded()
         {
             _pluginConfig = ConfigOrDefault(Config.ReadObject<PluginConfig>());
@@ -72,6 +71,7 @@ namespace Oxide.Plugins
         /// <param name="player"></param>
         /// ///////////////////////////////////////////////////////////////
         // ReSharper disable once UnusedMember.Local
+        // ReSharper disable once UnusedParameter.Local
         void OnCupboardClearList(BuildingPrivlidge privilege, BasePlayer player)
         {
             if(HasPermission(player, UsePermission))

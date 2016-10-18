@@ -394,10 +394,10 @@ namespace Oxide.Plugins
         /// ///////////////////////////////////////////////////////////////
         private bool CanPlayerAfford(BasePlayer player)
         {
+            if (!_pluginConfig.UseCost) return true; //Use cost is false
+
             bool canPlayerAfford = true;
             string message = _pluginConfig.Prefix + ":\n";
-
-            if (!_pluginConfig.UseCost) return canPlayerAfford; //Use cost is false
 
             if (_pluginConfig.ServerRewardsCost > 0) //Use server rewards
             {
