@@ -11,7 +11,7 @@ namespace Oxide.Plugins
         private StoredData _storedData; //Plugin Data
         private PluginConfig _pluginConfig; //Plugin Config
 
-        private const string UsePermission = "plugin.use";
+        private const string UsePermission = "baseplugin.use";
         #endregion
         
         #region Setup & Loading
