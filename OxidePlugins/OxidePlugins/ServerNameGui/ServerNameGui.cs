@@ -1,6 +1,8 @@
-﻿using Oxide.Game.Rust.Cui;
+﻿using System.IO;
+using Oxide.Game.Rust.Cui;
 using UnityEngine;
 
+// ReSharper disable once CheckNamespace
 namespace Oxide.Plugins
 {
     [Info("ServerNameGui", "MJSU", "0.0.1")]
@@ -10,7 +12,8 @@ namespace Oxide.Plugins
         #region Class Fields
         private PluginConfig _pluginConfig; //Plugin Config
         private const string GuiContainerName = "ServerNameGui_Container";
-        private CuiElementContainer container;
+        private CuiElementContainer _container;
+        private uint _iconId;
         #endregion
 
         #region Setup & Loading
@@ -19,7 +22,8 @@ namespace Oxide.Plugins
             _pluginConfig = ConfigOrDefault(Config.ReadObject<PluginConfig>());
             Config.WriteObject(_pluginConfig, true);
 
-            CreateServerGUI();
+            LoadImage();
+            CreateServerGui();
             LoadUiForConnectedPlayers();
         }
 
@@ -28,11 +32,11 @@ namespace Oxide.Plugins
         /// Creates the UI to be sent to all players
         /// </summary>
         /// ////////////////////////////////////////////////////////////////////////
-        private void CreateServerGUI()
+        private void CreateServerGui()
         {
-            container = UICreator.CreateElementContainer(GuiContainerName, "1 0.95 0.875 0.025", ".01 .9", ".05 .1", 0f, 0f);
-            UICreator.LoadImage(ref container, GuiContainerName, "https://pixabay.com/static/uploads/photo/2014/04/03/00/38/house-308936_960_720.png", "0 0", ".1 1");
-            UICreator.CreateLabel(ref container, GuiContainerName, "0 0 0 1", _pluginConfig.DisplayName, 12, ".11 0", "1 1");
+            _container = UICreator.CreateElementContainer(GuiContainerName, "1 0.95 0.875 0.025", ".0095 .1", ".1214 .135", 0f, 0f);
+            if(_iconId != 0) UICreator.LoadImage(ref _container, GuiContainerName, $"{_iconId}", ".02 .10", ".125 .8");
+            UICreator.CreateLabel(ref _container, GuiContainerName, ".8 .8 .8 .8", _pluginConfig.DisplayName, 16, ".155 0", "1 1");
         }
 
         ////////////////////////////////////////////////////////////////////////
@@ -42,9 +46,9 @@ namespace Oxide.Plugins
         /// ////////////////////////////////////////////////////////////////////////
         private void LoadUiForConnectedPlayers()
         {
-            foreach(BasePlayer player in BasePlayer.activePlayerList)
+            foreach (BasePlayer player in BasePlayer.activePlayerList)
             {
-                CuiHelper.AddUi(player, container);
+                CuiHelper.AddUi(player, _container);
             }
         }
 
@@ -73,7 +77,22 @@ namespace Oxide.Plugins
                 DisplayName = config?.DisplayName ?? $"{ConVar.Server.hostname}",
             };
         }
+
+        private void Unload()
+        {
+            foreach (BasePlayer player in BasePlayer.activePlayerList)
+            {
+                CuiHelper.DestroyUi(player, GuiContainerName);
+            }
+            FileStorage.server.RemoveEntityNum(_iconId, _iconId);
+        }
         #endregion
+
+        [ChatCommand("abc")]
+        private void stuff(BasePlayer player, string command, string[] args)
+        {
+            CuiHelper.AddUi(player, _container);
+        }
 
         #region Oxide Hooks
         ////////////////////////////////////////////////////////////////////////
@@ -84,7 +103,7 @@ namespace Oxide.Plugins
         /// ////////////////////////////////////////////////////////////////////////
         void OnPlayerInit(BasePlayer player)
         {
-            CuiHelper.AddUi(player, container);
+            CuiHelper.AddUi(player, _container);
         }
 
         ////////////////////////////////////////////////////////////////////////
@@ -98,6 +117,26 @@ namespace Oxide.Plugins
             CuiHelper.DestroyUi(player, GuiContainerName);
         }
         #endregion
+
+        private void LoadImage()
+        {
+            using (var www = new WWW("http://www.newdesignfile.com/postpic/2010/03/home-icon-white_338306.png"))
+            {
+                while (!www.isDone) { }
+
+                if (string.IsNullOrEmpty(www.error))
+                {
+                    var stream = new MemoryStream();
+                    stream.Write(www.bytes, 0, www.bytes.Length);
+                    _iconId = FileStorage.server.Store(stream, FileStorage.Type.png, uint.MaxValue-1001);
+                }
+                else
+                {
+                    Debug.Log("Error downloading img");
+                    ConsoleSystem.Run.Server.Normal("oxide.unload ServerNameGui");
+                }
+            }
+        }
 
         #region Classes
         ////////////////////////////////////////////////////////////////////////
@@ -131,7 +170,7 @@ namespace Oxide.Plugins
                         {
                             Image = {Color = color , FadeIn = fadeIn},
                             RectTransform = {AnchorMin = aMin, AnchorMax = aMax},
-                            CursorEnabled = true,
+                            CursorEnabled = false,
                             FadeOut = fadeOut
                         },
                         new CuiElement().Parent = "Hud",
@@ -150,7 +189,6 @@ namespace Oxide.Plugins
                 panel, CuiHelper.GetGuid());
 
             }
-
             public static void LoadImage(ref CuiElementContainer container, string panel, string png, string aMin, string aMax)
             {
                 container.Add(new CuiElement

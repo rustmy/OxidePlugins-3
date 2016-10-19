@@ -634,7 +634,7 @@ namespace Oxide.Plugins
         {
             PrintToChat(player, $"{_pluginConfig.Prefix} Help Text:\n"+
                                 "Allows clan owners to set their clans clothing. Clan members can then claim their clans clothing.\n"+
-                                 "This will also save the skin of the clothing item added."+
+                                 "This will also save the skin of the clothing item added.\n"+
                                 $" - <color=yellow>/{_pluginConfig.ChatCommand}</color> - to view this help text\n" +
                                 $" - <color=yellow>/{_pluginConfig.ChatCommand} check</color> - Check if you can afford clan clothing\n"+
                                 $" - <color=yellow>/{_pluginConfig.ChatCommand} claim</color> - Claim your clans clothing\n"+
