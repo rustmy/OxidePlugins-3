@@ -47,7 +47,8 @@ namespace Oxide.Plugins
                 ["RemoveSyntax"] = "Invalid remove syntax - /zad remove ZoneId",
                 ["InvalidSeconds"] = "The time you set of {0} is not valid",
                 ["Added"] = "You have added zone {0} with a delay of {1} seconds",
-                ["Removed"] = "You have removed zone {0}"
+                ["Removed"] = "You have removed zone {0}",
+                ["NotAZone"] = "The zone id {0} is an an active zone"
             }, this);
         }
 
@@ -146,6 +147,12 @@ namespace Oxide.Plugins
                 return;
             }
 
+            if(ZoneManager?.Call("CheckZoneID", args[1]) == null)
+            {
+                PrintToChat(player, Lang("NotAZone", args[1]));
+                return;
+            }
+
             _storedData.ZoneTimes[args[1]] = time;
             PrintToChat(player, $"{_pluginConfig.Prefix} {Lang("Added", player.UserIDString, args[1], args[2])}");
         }
@@ -162,6 +169,13 @@ namespace Oxide.Plugins
                 PrintToChat(player, $"{_pluginConfig.Prefix} {Lang("RemoveSyntax", player.UserIDString)}");
                 return;
             }
+
+            if (ZoneManager?.Call("CheckZoneID", args[1]) == null)
+            {
+                PrintToChat(player, Lang("NotAZone", args[1]));
+                return;
+            }
+
             _storedData.ZoneTimes.Remove(args[1]);
             PrintToChat(player, $"{_pluginConfig.Prefix} {Lang("Removed", player.UserIDString, args[1])}");
         }
