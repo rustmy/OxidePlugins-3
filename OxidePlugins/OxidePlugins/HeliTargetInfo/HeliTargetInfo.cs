@@ -89,8 +89,7 @@ namespace Oxide.Plugins
         /// <param name="args"></param>
         /// <returns></returns>
         ///  //////////////////////////////////////////////////////////////////////////////////////
-        private string Lang(string key, string id = null, params object[] args)
-            => string.Format(lang.GetMessage(key, this, id), args);
+        private string Lang(string key, string id = null, params object[] args) => string.Format(lang.GetMessage(key, this, id), args);
         #endregion
 
         //////////////////////////////////////////////////////////////////////////////////////

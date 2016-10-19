@@ -277,7 +277,7 @@ namespace Oxide.Plugins
 
             timer.Once(4.5f, () => // Set the SurveyData survey location to the location of the survey charge before exploding
             {
-                if (entity != null) data.Location = new Location(entity.transform.position);
+                if (!entity.isDestroyed) data.Location = new Location(entity.transform.position);
             });
 
             timer.Once(5.5f, () => //After the survey charge explodes display all the items that came out of it

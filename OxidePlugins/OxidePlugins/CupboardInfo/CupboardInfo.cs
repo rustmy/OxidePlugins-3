@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using ProtoBuf;
+using System.Linq;
 
 // ReSharper disable once CheckNamespace
 namespace Oxide.Plugins
@@ -88,10 +89,9 @@ namespace Oxide.Plugins
         // ReSharper disable once UnusedMember.Local
         void OnCupboardAuthorize(BuildingPrivlidge privilege, BasePlayer player)
         {
-            if (privilege.authorizedPlayers.Count <= 0) return;
+            if (privilege.authorizedPlayers.Count == 0) return;
             if (!HasPermission(player, UsePermission)) return;
-            PrintToChat(player, $"{_pluginConfig.Prefix} {Lang("Authorized", player.UserIDString)}");
-            DisplayCupboardData(privilege, player);
+            DisplayCupboardData(privilege, player, "Authorized");
         }
 
         ///////////////////////////////////////////////////////////////
@@ -104,10 +104,9 @@ namespace Oxide.Plugins
         // ReSharper disable once UnusedMember.Local
         void OnCupboardDeauthorize(BuildingPrivlidge privilege, BasePlayer player)
         {
-            if (privilege.authorizedPlayers.Count <= 0) return;
+            if (privilege.authorizedPlayers.Count == 0) return;
             if (!HasPermission(player, UsePermission)) return;
-            PrintToChat(player, $"{_pluginConfig.Prefix} {Lang("StillAuthoried", player.UserIDString)}");
-            DisplayCupboardData(privilege, player);
+            DisplayCupboardData(privilege, player, "StillAuthoried");
         }
         #endregion
 
@@ -118,15 +117,14 @@ namespace Oxide.Plugins
         /// </summary>
         /// <param name="privilege"></param>
         /// <param name="player"></param>
+        /// <param name="langString">lang key to be used</param>
         /// ///////////////////////////////////////////////////////////////
-        private void DisplayCupboardData(BuildingPrivlidge privilege, BasePlayer player)
+        private void DisplayCupboardData(BuildingPrivlidge privilege, BasePlayer player, string langString)
         {
-            foreach (PlayerNameID user in privilege.authorizedPlayers)
+            string message = $"{_pluginConfig.Prefix} {Lang(langString, player.UserIDString)}\n";
+            foreach (PlayerNameID user in privilege.authorizedPlayers.Where(playerName => playerName.userid != player.userID))
             {
-                if (user.userid != player.userID)
-                {
-                    PrintToChat(player, $" - {user.userid} {user.username}");
-                }
+                message += $" - {user.username}\n";
             }
         }
         #endregion
@@ -141,8 +139,7 @@ namespace Oxide.Plugins
         /// <param name="args"></param>
         /// <returns></returns>
         ///  //////////////////////////////////////////////////////////////////////////////////////
-        private string Lang(string key, string id = null, params object[] args)
-            => string.Format(lang.GetMessage(key, this, id), args);
+        private string Lang(string key, string id = null, params object[] args) => string.Format(lang.GetMessage(key, this, id), args);
 
         //////////////////////////////////////////////////////////////////////////////////////
         /// <summary>
