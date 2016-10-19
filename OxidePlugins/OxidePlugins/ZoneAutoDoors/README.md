@@ -8,7 +8,7 @@
 ### Chat Commands:
 + **/zonead add {zoneid} {seconds}** - the zone with the given id will have doors close after the given seconds
 + **/zonead remove {zoneid}** - removes the auto doors from the given zone
-+ **zonead list** - list all the zones with auto doors
++ **/zonead list** - list all the zones with auto doors
 
 ###Plugin Config:
 ```
