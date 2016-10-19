@@ -632,7 +632,7 @@ namespace Oxide.Plugins
         #region Help Text
         private void SendHelpText(BasePlayer player)
         {
-            PrintToChat(player, "[<color=yellow>Clan Clothing</color>] Help Text:\n"+
+            PrintToChat(player, $"{_pluginConfig.Prefix} Help Text:\n"+
                                 "Allows clan owners to set their clans clothing. Clan members can then claim their clans clothing.\n"+
                                  "This will also save the skin of the clothing item added."+
                                 $" - <color=yellow>/{_pluginConfig.ChatCommand}</color> - to view this help text\n" +

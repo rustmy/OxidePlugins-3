@@ -6,7 +6,7 @@ using System.Collections.Generic;
 namespace Oxide.Plugins
 {
     [Info("ZoneAutoDoors", "MJSU", "0.0.1")]
-    [Description("Force autodoors in set zones")]
+    [Description("Force auto doors in set zones")]
     class ZoneAutoDoors : RustPlugin
     {
         [PluginReference]
@@ -43,11 +43,10 @@ namespace Oxide.Plugins
             lang.RegisterMessages(new Dictionary<string, string>
             {
                 ["NoPermission"] = "You do not have permission to use this command",
-                ["InvalidSytax"] = "Invalid syntax - /zad add/remove ZoneId seconds",
                 ["AddSyntax"] = "Invalid add syntax - /zad add ZoneId seconds",
-                ["RemoveSyntax"] = "Invalid remove syntax - /zad remove ZoneId seconds",
+                ["RemoveSyntax"] = "Invalid remove syntax - /zad remove ZoneId",
                 ["InvalidSeconds"] = "The time you set of {0} is not valid",
-                ["Added"] = "You have added zone {0} with a delay of {1}",
+                ["Added"] = "You have added zone {0} with a delay of {1} seconds",
                 ["Removed"] = "You have removed zone {0}"
             }, this);
         }
@@ -73,7 +72,7 @@ namespace Oxide.Plugins
         {
             return new PluginConfig
             {
-                Prefix = config?.Prefix ?? "[<color=yellow>ZoneAutoDoors</color>]",
+                Prefix = config?.Prefix ?? "[<color=yellow>Zone Auto Doors</color>]",
             };
         }
 
@@ -88,7 +87,7 @@ namespace Oxide.Plugins
         #endregion
 
         #region Chat Command
-        [ChatCommand("zad")]
+        [ChatCommand("zonead")]
         // ReSharper disable once UnusedMember.Local
         // ReSharper disable once UnusedParameter.Local
         private void ZoneAutoDoorsChatCommand(BasePlayer player, string command, string[] args)
@@ -101,46 +100,85 @@ namespace Oxide.Plugins
 
             if (args.Length < 1)
             {
-                PrintToChat(player, $"{_pluginConfig.Prefix} {Lang("InvalidSyntax", player.UserIDString)}");
+                SendHelpText(player);
                 return;
             }
 
             switch (args[0].ToLower())
             {
                 case "add":
-                    if (args.Length != 3)
-                    {
-                        PrintToChat(player, $"{_pluginConfig.Prefix} {Lang("AddSyntax", player.UserIDString)}");
-                        return;
-                    }
-
-                    float time;
-                    if (!float.TryParse(args[2], out time))
-                    {
-                        PrintToChat(player, $"{_pluginConfig.Prefix} {Lang("InvalidSeconds", player.UserIDString, args[2])}");
-                        return;
-                    }
-
-                    _storedData.ZoneTimes[args[1]] = time;
-                    PrintToChat(player, $"{_pluginConfig.Prefix} {Lang("Added", player.UserIDString, args[1], args[2])}");
+                    HandleAddCommand(player, args);
                     break;
 
                 case "remove":
-                    if (args.Length != 2)
-                    {
-                        PrintToChat(player, $"{_pluginConfig.Prefix} {Lang("RemoveSyntax", player.UserIDString)}");
-                        return;
-                    }
-                    _storedData.ZoneTimes.Remove(args[1]);
-                    PrintToChat(player, $"{_pluginConfig.Prefix} {Lang("Removed", player.UserIDString, args[1])}");
+                    HandleRemoveCommand(player, args);
+                    break;
+
+                case "list":
+                    HandleListCommand(player);
                     break;
 
                 default:
-                    PrintToChat(player, $"{_pluginConfig.Prefix} {Lang("InvalidSyntax", player.UserIDString)}");
+                    SendHelpText(player);
                     break;
             }
 
             Interface.Oxide.DataFileSystem.WriteObject("ZoneAutoDoors", _storedData);
+        }
+
+        /// <summary>
+        /// Handles the chat command for adding auto doors to a zone
+        /// </summary>
+        /// <param name="player">player calling the command</param>
+        /// <param name="args">args for setting up the auto doors</param>
+        private void HandleAddCommand(BasePlayer player, string[] args)
+        {
+            if (args.Length != 3) //make sure we have the correct number of arguments
+            {
+                PrintToChat(player, $"{_pluginConfig.Prefix} {Lang("AddSyntax", player.UserIDString)}");
+                return;
+            }
+
+            float time;
+            if (!float.TryParse(args[2], out time) || time <= 0) //failed to parse time or it is <= 0
+            {
+                PrintToChat(player, $"{_pluginConfig.Prefix} {Lang("InvalidSeconds", player.UserIDString, args[2])}");
+                return;
+            }
+
+            _storedData.ZoneTimes[args[1]] = time;
+            PrintToChat(player, $"{_pluginConfig.Prefix} {Lang("Added", player.UserIDString, args[1], args[2])}");
+        }
+
+        /// <summary>
+        /// Handle the chat command for removing auto doors from a zone
+        /// </summary>
+        /// <param name="player">player calling the command</param>
+        /// <param name="args">args for removing auto doors</param>
+        private void HandleRemoveCommand(BasePlayer player, string[] args)
+        {
+            if (args.Length != 2) //make sure we have the correct number of arguments
+            {
+                PrintToChat(player, $"{_pluginConfig.Prefix} {Lang("RemoveSyntax", player.UserIDString)}");
+                return;
+            }
+            _storedData.ZoneTimes.Remove(args[1]);
+            PrintToChat(player, $"{_pluginConfig.Prefix} {Lang("Removed", player.UserIDString, args[1])}");
+        }
+
+        /// <summary>
+        /// Lists all the zones with auto doors to the player
+        /// </summary>
+        /// <param name="player"></param>
+        private void HandleListCommand(BasePlayer player)
+        {
+            string message = $"{_pluginConfig.Prefix} Zones with auto doors set:\n";
+            foreach(KeyValuePair<string, float> zone in _storedData.ZoneTimes)
+            {
+                message += $"{zone.Key} with {zone.Value} seconds\n";
+            }
+
+            PrintToChat(player, message);
         }
 
         // ReSharper disable once UnusedMember.Local
@@ -202,6 +240,20 @@ namespace Oxide.Plugins
         class StoredData
         {
             public Hash<string, float> ZoneTimes = new Hash<string, float>();
+        }
+        #endregion
+
+        #region Help Text
+        private void SendHelpText(BasePlayer player)
+        {
+            PrintToChat(player, $"{_pluginConfig.Prefix} Help Text:\n" +
+                                "Allows admins or players with permission to set a zone from Zone Manager to have auto doors" +
+                                "Any door in this zone will close after the set number of seconds" +
+                                " - <color=yellow>/zonead</color> - to view this help text\n" +
+                                " - <color=yellow>/zonead add zoneId seconds</color> - Will set the auto doors for the given zone id to the number of seconds" +
+                                " - <color=yellow>/zonead remove zoneId - Will remove auto doors for the given zone" +
+                                " - <color=yellow>/zonead list - will list the zone ids and seconds for each zone with auto doors" +
+                                "Note: If you wish to update a zone the run the /zonead add command again for the given zone");
         }
         #endregion
     }
