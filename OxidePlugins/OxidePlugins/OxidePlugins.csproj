@@ -36,6 +36,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AutoCodeLock\AutoCodeLock.cs" />
+    <Compile Include="ServerNameGui\ServerNameGui.cs" />
     <Compile Include="ClanClothing\ClanClothing.cs" />
     <Compile Include="CupboardInfo\CupboardInfo.cs" />
     <Compile Include="HeliTargetInfo\HeliTargetInfo.cs" />
