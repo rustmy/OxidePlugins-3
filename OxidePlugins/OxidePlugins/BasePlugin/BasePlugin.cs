@@ -94,7 +94,6 @@ namespace Oxide.Plugins
         class PluginConfig
         {
             public string Prefix { get; set; }
-            public string ConfigVersion { get; set; }
         }
 
         class StoredData
