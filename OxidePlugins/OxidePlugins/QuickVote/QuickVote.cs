@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using Oxide.Core;
 
+// ReSharper disable once CheckNamespace
 namespace Oxide.Plugins
 {
     [Info("QuickVote", "MJSU", "0.0.1")]
     [Description("Voting with speed")]
+    // ReSharper disable once UnusedMember.Global
     class QuickVote : RustPlugin
     {
         #region Class Fields
@@ -19,6 +21,7 @@ namespace Oxide.Plugins
         #endregion
 
         #region Loading & Setup
+        // ReSharper disable once UnusedMember.Local
         private void Loaded()
         {
             _pluginConfig = Config.ReadObject<PluginConfig>();
@@ -69,7 +72,7 @@ namespace Oxide.Plugins
                 ["zlvl-mg"] = "You have gained {0} mining level(s)",
                 ["zlvl-s"] = "You have gained {0} skinning level(s)",
                 ["zlvl-c"] = "You have gained {0} crafting level(s)",
-                ["TopVoter"] = "Congradulations on being one of the top voters for the month! You have been placed into group {0} for the next month!",
+                ["TopVoter"] = "Congratulations on being one of the top voters for the month! You have been placed into group '{0}' for the next month!",
                 ["VotesToClaim"] = "You currently have {0} vote you can claim!",
                 ["Votes"] = "You have {0} vote(s) on record"
             }, this);
@@ -155,19 +158,21 @@ namespace Oxide.Plugins
         /// ////////////////////////////////////////////////////////////////////////
         private void HandleDataWipe()
         {
-            if (_storedData.month != DateTime.Now.Month)  //If it's a new month wipe the saved votes
+            if (_storedData.Month != DateTime.Now.Month)  //If it's a new month wipe the saved votes
             {
                 if(_pluginConfig.EnableTopVoter) HandleTopVoter();
                 if (_pluginConfig.WipeVoteDataOnNewMonth)
                 {
+                    StoredData oldData = _storedData;
                     PrintWarning("New month detected. Wiping user votes");
                     Interface.GetMod().DataFileSystem.WriteObject("QuickVote.bac", _storedData);
-                    _storedData = new StoredData();
+                    _storedData = new StoredData {TopVoters = oldData.TopVoters, NotifiedPlayers = oldData.NotifiedPlayers};
                     Interface.GetMod().DataFileSystem.WriteObject("QuickVote", _storedData); // Write wiped data
                 }
             }
         }
 
+        // ReSharper disable once UnusedMember.Local
         private void Unload()
         {
             _voteChecker?.Destroy();
@@ -176,6 +181,15 @@ namespace Oxide.Plugins
         #endregion
 
         #region Chat Commands
+
+        [ChatCommand("fake")]
+        // ReSharper disable once UnusedMember.Local
+        // ReSharper disable once UnusedParameter.Local
+        void FakeChatCommand(BasePlayer player, string command, string[] args)
+        {
+            if (!player.IsAdmin()) return;
+            _storedData.Players[player.userID].TotalVotes++;
+        }
         ////////////////////////////////////////////////////////////////////////
         /// <summary>
         /// Player called the vote chat command
@@ -184,9 +198,12 @@ namespace Oxide.Plugins
         /// <param name="command"></param>
         /// <param name="args"></param>
         /// ////////////////////////////////////////////////////////////////////////
-        [ChatCommand("vote")]
-        void cmdVote(BasePlayer player, string command, string[] args)
+        [ChatCommand("vote1")]
+        // ReSharper disable once UnusedMember.Local
+        // ReSharper disable once UnusedParameter.Local
+        void VoteChatCommand(BasePlayer player, string command, string[] args)
         {
+            if (!player.IsAdmin()) return;
             if (args.Length == 0)
             {
                 foreach (VoteSite site in _pluginConfig.Settings)
@@ -221,8 +238,11 @@ namespace Oxide.Plugins
         /// <param name="args"></param>
         /// ////////////////////////////////////////////////////////////////////////
         [ChatCommand("claim")]
-        void cmdReward(BasePlayer player, string command, string[] args)
+        // ReSharper disable once UnusedMember.Local
+        // ReSharper disable once UnusedParameter.Local
+        void RewardChatCommand(BasePlayer player, string command, string[] args)
         {
+            if (!player.IsAdmin()) return;
             if (args.Length == 0) HandleRewardCheck(player, true);
             else SendHelpText(player);
         }
@@ -255,7 +275,7 @@ namespace Oxide.Plugins
                             PrintError($"{reward.Key} is not a shortname for any item");
                             continue;
                         }
-                        message += $" - {itemDef?.displayName.translated}: {reward.Value}\n";
+                        message += $" - {itemDef.displayName.translated}: {reward.Value}\n";
                     }
                 }
             }
@@ -325,27 +345,27 @@ namespace Oxide.Plugins
             if(playerData.ClaimedVotes == playerData.TotalVotes) //Players claimed and total votes are equal
             {
                 Chat(player, Lang("NoRewards", player.UserIDString));
-                Chat(player, Lang("Votes", player.UserIDString), playerData.TotalVotes);
+                Chat(player, Lang("Votes", player.UserIDString, playerData.TotalVotes));
                 return;
             }
 
             if (DEBUG) Puts($"Saved Votes:{playerData.ClaimedVotes} Times Voted: {playerData.TotalVotes}");
 
             //Loop over each vote missed so the user get's all their rewards
-            for (; playerData.ClaimedVotes <= playerData.TotalVotes; playerData.ClaimedVotes++)
+            for (int timesVoted = playerData.ClaimedVotes + 1; timesVoted <= playerData.TotalVotes; timesVoted++)
             {
-                string message = $"{Lang("ThankYou", player.UserIDString, playerData.ClaimedVotes)}";
+                string message = $"{Lang("ThankYou", player.UserIDString, timesVoted)}";
 
                 foreach (KeyValuePair<int, Hash<string, string>> voteReward in _pluginConfig.Reward)
                 {
-                    if (DEBUG) Puts($"Reward Number: {voteReward.Key} vote: {playerData.ClaimedVotes}");
+                    if (DEBUG) Puts($"Reward Number: {voteReward.Key} vote: {timesVoted}");
 
                     // If player should not receive a reward for this vote continue the loop
                     // If the reward number is negative and the vote divides evenly into the reward number
                     // and if the reward number is positive and the vote and reward number are equal
                     // If both negate to true then we continue this loop and don't run the code below
-                    if (!(voteReward.Key < 0 && playerData.ClaimedVotes % Math.Abs(voteReward.Key) == 0) &&
-                        !(voteReward.Key > 0 && playerData.ClaimedVotes == voteReward.Key)) { continue; }
+                    if (!(voteReward.Key < 0 && timesVoted % Math.Abs(voteReward.Key) == 0) &&
+                        !(voteReward.Key > 0 && timesVoted == voteReward.Key)) { continue; }
 
                     // Loop for all rewards.
                     foreach (KeyValuePair<string, string> reward in voteReward.Value)
@@ -382,6 +402,9 @@ namespace Oxide.Plugins
                         }
                     }
                 }
+
+                playerData.ClaimedVotes = timesVoted;
+                Chat(player, message);
             }
 
             if (_pluginConfig.BroadcastVoteToAll) //Broadcast to all users that player has voted
@@ -399,18 +422,18 @@ namespace Oxide.Plugins
         /// </summary>
         /// <param name="player">player to check if they're a top voter</param>
         /// ////////////////////////////////////////////////////////////////////////
+        // ReSharper disable once UnusedMember.Local
         void OnPlayerSleepEnded(BasePlayer player)
         {
             if (_storedData.NotifiedPlayers[player.userID] != null) // If player should be notified about being a top voter notify them
             {
-                Chat(player, Lang("TopVoter", player.UserIDString), _storedData.NotifiedPlayers[player.userID]);
+                Chat(player, Lang("TopVoter", player.UserIDString, _storedData.NotifiedPlayers[player.userID]));
                 _storedData.NotifiedPlayers.Remove(player.userID);
             }
 
             PlayerVoteData playerData = _storedData.Players[player.userID];
-            if (playerData == null) return;
 
-            if (playerData.TotalVotes > playerData.ClaimedVotes) //If the player has votes the claim notify them
+            if (playerData?.TotalVotes > playerData?.ClaimedVotes) //If the player has votes the claim notify them
             {
                 Chat(player, Lang("VotesToClaim", player.UserIDString), playerData.TotalVotes - playerData.ClaimedVotes);
             }
@@ -427,11 +450,14 @@ namespace Oxide.Plugins
         /// ////////////////////////////////////////////////////////////////////////
         private void HandleTopVoter()
         {
-            RemoveOldTopVotersFromGroup(); // Remove the old top voters
+            RemoveOldTopVotersFromGroup(); 
+            _storedData.TopVoters = new Hash<string, List<ulong>>();
+            _storedData.NotifiedPlayers = new Hash<ulong, string>();
+            
+            // Remove the old top voters
             List<PlayerVoteData> votedPlayer = _storedData.Players.Values.OrderByDescending(vote => vote.TotalVotes).ToList(); //Create a list order desceding by total votes
             if (votedPlayer.Count == 0) return; //No players voter this month lets return
 
-            int totalGroup = _pluginConfig.TopVoterGroups.Count; //Total group to be placed in
             int index = 0; //Starting group index
             int currentTopVote = votedPlayer[0].TotalVotes; //What the current top vote is
 
@@ -459,7 +485,7 @@ namespace Oxide.Plugins
         /// Remove all the previous top voters from the groups they are in
         /// </summary>
         /// ////////////////////////////////////////////////////////////////////////
-        public void RemoveOldTopVotersFromGroup()
+        private void RemoveOldTopVotersFromGroup()
         {
             _storedData.NotifiedPlayers = new Hash<ulong, string>();
             foreach (KeyValuePair<string, List<ulong>> topPlayer in _storedData.TopVoters) //Loop over each group
@@ -495,7 +521,7 @@ namespace Oxide.Plugins
         /// <param name="playerId">player to be added</param>
         /// <param name="group">group to add player too</param>
         /// ////////////////////////////////////////////////////////////////////////
-        public void AddToGroup(string playerId, string group)
+        private void AddToGroup(string playerId, string group)
         {
             if (permission.GroupExists(group)) //Make sure group exists
                 permission.AddUserGroup(playerId, group);
@@ -510,7 +536,7 @@ namespace Oxide.Plugins
         /// <param name="playerId">player to be removed</param>
         /// <param name="group">group to remove player from</param>
         /// ////////////////////////////////////////////////////////////////////////
-        public void RemoveFromGroup(string playerId, string group)
+        private void RemoveFromGroup(string playerId, string group)
         {
             if (permission.GetUserGroups(playerId).Contains(group)) permission.RemoveUserGroup(playerId, group);
             else PrintWarning($"Failed to remove player from '{group}'. Make sure you have the right group name");
@@ -526,7 +552,7 @@ namespace Oxide.Plugins
         /// <param name="format"></param>
         /// <param name="args"></param>
         /// ////////////////////////////////////////////////////////////////////////
-        public void Chat(BasePlayer player, string format, params object[] args) => PrintToChat(player, $"{_pluginConfig.Prefix} {format}", args);
+        private void Chat(BasePlayer player, string format, params object[] args) => PrintToChat(player, $"{_pluginConfig.Prefix} {format}", args);
 
         //////////////////////////////////////////////////////////////////////////////////////
         /// <summary>
@@ -538,7 +564,7 @@ namespace Oxide.Plugins
         /// <param name="args"></param>
         /// <returns></returns>
         ///  //////////////////////////////////////////////////////////////////////////////////////
-        string Lang(string key, string id = null, params object[] args) => string.Format(lang.GetMessage(key, this, id), args);
+        private string Lang(string key, string id = null, params object[] args) => string.Format(lang.GetMessage(key, this, id), args);
 
         ////////////////////////////////////////////////////////////////////////
         /// <summary>
@@ -559,7 +585,7 @@ namespace Oxide.Plugins
 
             for (int index = 0; index < strValues.Length; index++) //Loop over each value and insert it's value
             {
-                output.Replace($"{{value{index}}}", strValues[index]);
+                output = output.Replace($"{{value{index}}}", strValues[index]);
             }
 
             return output;
@@ -610,7 +636,7 @@ namespace Oxide.Plugins
         class StoredData
         {
             public Hash<ulong, PlayerVoteData> Players = new Hash<ulong, PlayerVoteData>();
-            public int month = DateTime.Now.Month;
+            public int Month = DateTime.Now.Month;
             public Hash<string, List<ulong>> TopVoters = new Hash<string, List<ulong>>();
             public Hash<ulong, string> NotifiedPlayers = new Hash<ulong, string>();
         }
@@ -622,7 +648,7 @@ namespace Oxide.Plugins
         /// ////////////////////////////////////////////////////////////////////////
         class PlayerVoteData
         {
-            public ulong Id { get; set; }
+            public ulong Id { get; }
             public string DisplayName { get; set; }
             public int TotalVotes { get; set; }
             public int ClaimedVotes { get; set; }
@@ -641,7 +667,7 @@ namespace Oxide.Plugins
         #region Help Text
         private void SendHelpText(BasePlayer player)
         {
-            Chat(player, $" Help Text:\n" +
+            Chat(player, " Help Text:\n" +
                 "Quick vote makes voting quick and easy\n" +
                 "<color=yellow>/vote</color> - see avaliable voting sites for this server\n" +
                 "<color=yellow>/vote list</color> - see avaliable rewards",
