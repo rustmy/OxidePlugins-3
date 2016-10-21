@@ -20,7 +20,8 @@ namespace Oxide.Plugins
         private void Loaded()
         {
             _pluginConfig = ConfigOrDefault(Config.ReadObject<PluginConfig>());
-            Config.WriteObject(_pluginConfig, true);
+            if (_pluginConfig.Prefix == null) PrintError("Loading config file failed. Using default config");
+            else Config.WriteObject(_pluginConfig, true);
 
             LoadImage();
             CreateServerGui();

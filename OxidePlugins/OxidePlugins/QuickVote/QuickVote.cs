@@ -24,17 +24,16 @@ namespace Oxide.Plugins
         // ReSharper disable once UnusedMember.Local
         private void Loaded()
         {
-            _pluginConfig = Config.ReadObject<PluginConfig>();
-
-            if(_pluginConfig.Prefix == null) PrintError("Loading config file failed. Using default config");
+            _pluginConfig = ConfigOrDefault(Config.ReadObject<PluginConfig>());
+            if (_pluginConfig.Prefix == null) PrintError("Loading config file failed. Using default config");
             else Config.WriteObject(_pluginConfig, true);
-            
+
             _storedData = Interface.Oxide.DataFileSystem.ReadObject<StoredData>("QuickVote");
 
             LoadLang();
             HandleDataWipe();
 
-            _voteChecker = timer.Every(_pluginConfig.CheckVoteTimerIntervalInMinutes * 60, () =>
+            _voteChecker = timer.Every(_pluginConfig.CheckVoteTimerIntervalInMinutes * 60f, () =>
             {
                 foreach(ulong playerId in _storedData.Players.Keys)
                 {
@@ -63,7 +62,7 @@ namespace Oxide.Plugins
                 ["NoRewards"] = " You do not have any new rewards avaliable \n Please type <color=yellow>/vote</color> and go to the website to vote and receive your reward",
                 ["GlobalAnnouncment"] = "<color=yellow>{0}</color><color=cyan> has voted </color><color=yellow>{1}</color><color=cyan> time(s) and just received their rewards. Find out where to vote by typing</color><color=yellow> /vote</color>\n<color=cyan>To see a list of avaliable rewards type</color><color=yellow> /reward list</color>",
                 ["TopVoter"] = "Congratulations on being one of the top voters for the month! You have been placed into group '{0}' for the next month!",
-                ["VotesToClaim"] = "You currently have {0} vote you can claim!",
+                ["VotesToClaim"] = "You currently have {0} vote(s) you can claim!",
                 ["Votes"] = "You have {0} vote(s) on record"
             }, this);
         }
@@ -699,6 +698,11 @@ namespace Oxide.Plugins
             public string SitePrefix { get; set; }
         }
 
+        ////////////////////////////////////////////////////////////////////////
+        /// <summary>
+        /// Class to control the possible command that can be run for the player
+        /// </summary>
+        /// ////////////////////////////////////////////////////////////////////////
         private class VariableCommands
         {
             public string Command { get; set; }

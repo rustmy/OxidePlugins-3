@@ -44,7 +44,8 @@ namespace Oxide.Plugins
             LoadLang();
 
             _pluginConfig = ConfigOrDefault(Config.ReadObject<PluginConfig>());
-            Config.WriteObject(_pluginConfig, true);
+            if (_pluginConfig.Prefix == null) PrintError("Loading config file failed. Using default config");
+            else Config.WriteObject(_pluginConfig, true);
 
             _storedData = Interface.Oxide.DataFileSystem.ReadObject<StoredData>("SurveyInfo");
 
