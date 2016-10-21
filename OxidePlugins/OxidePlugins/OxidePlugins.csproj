@@ -36,7 +36,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AutoCodeLock\AutoCodeLock.cs" />
+    <Compile Include="ReWrites\Admin Inventory Cleaner\InventoryCleaner.cs" />
     <Compile Include="QuickVote\QuickVote.cs" />
+    <Compile Include="ReWrites\ChatHead\ChatHead.cs" />
     <Compile Include="ServerNameGui\ServerNameGui.cs" />
     <Compile Include="ClanClothing\ClanClothing.cs" />
     <Compile Include="CupboardInfo\CupboardInfo.cs" />

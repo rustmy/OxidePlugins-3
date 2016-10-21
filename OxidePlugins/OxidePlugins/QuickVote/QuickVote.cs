@@ -328,7 +328,7 @@ namespace Oxide.Plugins
                         ItemDefinition itemDef = ItemManager.FindItemDefinition(reward.Key);
                         if (itemDef == null)
                         {
-                            PrintError($"{reward.Key} is not a shortname for any item");
+                            PrintError($"{reward.Key} is not a shortname for any item or variable");
                             continue;
                         }
                         message += $" - {itemDef.displayName.translated}: {reward.Value}\n";
