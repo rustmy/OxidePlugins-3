@@ -3,27 +3,25 @@ using System.Collections.Generic;
 using UnityEngine;
 
 
+// ReSharper disable once CheckNamespace
 namespace Oxide.Plugins
 {
     [Info("ChatHead", "LeoCurtss", 0.3)]
     [Description("Displays chat messages above player")]
 
+    // ReSharper disable once UnusedMember.Global
     class ChatHead : RustPlugin
     {
-        //Dictionary - PlayerID - LastMesage
-        //On every chat, add Player and message if not present.  Update message if exsists in dictionary
-
-
         #region Class Fields
         private StoredData _storedData; //Plugin Data
         private PluginConfig _pluginConfig; //Plugin Config
 
         private const string UsePermission = "chathead.use";
-        private Hash<string, string> lastChatMessage = new Hash<string, string>();
-        private Hash<ulong, Timer> _playerDisplayTimer = new Hash<ulong, Timer>();
+        private readonly Hash<ulong, Timer> _playerDisplayTimer = new Hash<ulong, Timer>();
         #endregion
 
         #region Setup & Loading
+        // ReSharper disable once UnusedMember.Local
         private void Loaded()
         {
             LoadLang();
@@ -73,7 +71,7 @@ namespace Oxide.Plugins
             return new PluginConfig
             {
                 Prefix = config?.Prefix ?? "[<color=yellow>Chat Head</color>]",
-                DisplayColor = config?.DisplayColor ?? new Color(1, 1, 1, 1),
+                DisplayColor = config?.DisplayColor ?? "1 1 1 1",
                 DisplayLengthInSeconds = config?.DisplayLengthInSeconds ?? 80,
                 MessageFontSize = 25,
                 PlayerDistanceLimit = 40
@@ -81,6 +79,7 @@ namespace Oxide.Plugins
         }
         #endregion
 
+        // ReSharper disable once UnusedMember.Local
         private void OnPlayerChat(ConsoleSystem.Arg arg)
         {
             BasePlayer player = (BasePlayer)arg.connection.player;
@@ -89,35 +88,33 @@ namespace Oxide.Plugins
 
             PlayerSettings settings = _storedData.PlayerSettings[player.userID];
             if (settings == null || !settings.ShowChatAboveHead) return;
-            string userID = player.UserIDString;
             string message = arg.Args[0];
-
-            lastChatMessage[userID] = message;
 
             foreach (BasePlayer onlinePlayer in BasePlayer.activePlayerList)
             {
-                DrawChatMessage(player, onlinePlayer, settings);
+                DrawChatMessage(player, onlinePlayer, settings, message);
             }
         }
 
-        private void DrawChatMessage(BasePlayer chatPlayer, BasePlayer onlinePlayer, PlayerSettings settings)
+        private void DrawChatMessage(BasePlayer player, BasePlayer onlinePlayer, PlayerSettings settings, string message)
         {
-            if (Vector3.Distance(chatPlayer.transform.position, onlinePlayer.transform.position) > settings.DisplayDistance) return;
+            if (Vector3.Distance(player.transform.position, onlinePlayer.transform.position) > settings.DisplayDistance) return;
+            Color color =  ColorEx.Parse(_pluginConfig.DisplayColor);
 
-            string lastMessage = lastChatMessage[chatPlayer.UserIDString];
+            onlinePlayer.SendConsoleCommand("ddraw.text", 0.099f, color, player.transform.position + new Vector3(0, 1.9f, 0), $"<size={_pluginConfig.MessageFontSize}>{message}</size>");
 
-            onlinePlayer.SendConsoleCommand("ddraw.text", 0.1f, _pluginConfig.DisplayColor, chatPlayer.transform.position + new Vector3(0, 1.9f, 0), $"<size={_pluginConfig.MessageFontSize}>{lastMessage}</size>");
-
-            _playerDisplayTimer[chatPlayer.userID]?.Destroy();
-            _playerDisplayTimer[chatPlayer.userID] = timer.Repeat(0.1f, _pluginConfig.DisplayLengthInSeconds * 10, () =>
+            _playerDisplayTimer[player.userID]?.Destroy();
+            _playerDisplayTimer[player.userID] = timer.Repeat(0.1f, _pluginConfig.DisplayLengthInSeconds * 10, () =>
             {
-                lastMessage = lastChatMessage[chatPlayer.UserIDString];
-                onlinePlayer.SendConsoleCommand("ddraw.text", 0.1f, _pluginConfig.DisplayColor, chatPlayer.transform.position + new Vector3(0, 1.9f, 0), $"<size={_pluginConfig.MessageFontSize}>{lastMessage}</size>");
+                onlinePlayer.SendConsoleCommand("ddraw.text", 0.099f, color, player.transform.position + new Vector3(0, 1.9f, 0), $"<size={_pluginConfig.MessageFontSize}>{message}</size>");
             });
 
         }
 
         #region Chat Command
+        // ReSharper disable once UnusedMember.Local
+        // ReSharper disable once UnusedParameter.Local
+        [ChatCommand("chathead")]
         private void ChatHeadChatCommand(BasePlayer player, string command, string[] args)
         {
             if (player == null) return;
@@ -127,9 +124,12 @@ namespace Oxide.Plugins
                 return;
             }
 
-            if(args.Length == 0)
+            CheckPlayer(player);
+
+            if (args.Length == 0)
             {
                 SendHelpText(player);
+                return;
             }
 
             switch (args[0].ToLower())
@@ -148,11 +148,10 @@ namespace Oxide.Plugins
                     HandleDistance(player, args);
                     break;
 
-                default:
-                    SendHelpText(player);
-                    break;
             }
 
+            Interface.Oxide.DataFileSystem.WriteObject("ChatHead", _storedData);
+            SendHelpText(player);
         }
 
         private void HandleDistance(BasePlayer player, string[] args)
@@ -178,15 +177,14 @@ namespace Oxide.Plugins
 
             _storedData.PlayerSettings[player.userID].DisplayDistance = distance;
         }
+
         #endregion
 
         #region Oxide Hooks
+        // ReSharper disable once UnusedMember.Local
         void OnPlayerInit(BasePlayer player)
         {
-            if(_storedData.PlayerSettings[player.userID] == null)
-            {
-                _storedData.PlayerSettings[player.userID] = new PlayerSettings { DisplayDistance = 20, ShowChatAboveHead = true };
-            }
+            CheckPlayer(player);
         }
         #endregion
 
@@ -221,18 +219,27 @@ namespace Oxide.Plugins
         /// <returns></returns>
         /// //////////////////////////////////////////////////////////////////////////////////////
         private bool HasPermission(BasePlayer player, string perm) => permission.UserHasPermission(player.UserIDString, perm);
+
+        private void CheckPlayer(BasePlayer player)
+        {
+            if (_storedData.PlayerSettings[player.userID] == null)
+            {
+                _storedData.PlayerSettings[player.userID] = new PlayerSettings { DisplayDistance = 20, ShowChatAboveHead = true };
+            }
+        }
         #endregion
 
         #region Classes
         private class PluginConfig
         {
             public string Prefix { get; set; }
-            public Color DisplayColor { get; set; }
+            public string DisplayColor { get; set; }
             public int DisplayLengthInSeconds { get; set; }
             public int MessageFontSize { get; set; }
             public int PlayerDistanceLimit { get; set; }
         }
 
+        // ReSharper disable once ClassNeverInstantiated.Local
         private class StoredData
         {
             public Hash<ulong, PlayerSettings> PlayerSettings = new Hash<ulong, PlayerSettings>();
@@ -248,7 +255,12 @@ namespace Oxide.Plugins
         #region Help Text
         private void SendHelpText(BasePlayer player)
         {
-
+            string message = "<color=#ff6961><size=18>ChatHead</size></color>\n" +
+                             "<color=#DDDDDD>Command Usage:</color> <color=#ADD8E6>/chathead on/off</color>\n" +
+                             "<color=#DDDDDD>Command Usage:</color> <color=#ADD8E6>/chathead distance {distance}</color>\n" +
+                             $"ChatHead is {(_storedData.PlayerSettings[player.userID].ShowChatAboveHead ? "<color=#98fb98>Enabled</color>" : "<color=#ff6961>Disabled</color>")}\n" +
+                             $"Your ChatHead can be seen from <color=#00ffa5>{_storedData.PlayerSettings[player.userID].DisplayDistance}m</color>";
+            PrintToChat(player, message);
         }
         #endregion
 

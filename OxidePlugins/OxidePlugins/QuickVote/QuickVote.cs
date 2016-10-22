@@ -343,7 +343,7 @@ namespace Oxide.Plugins
         /// <summary>
         /// handles the chat command for reward checking
         /// </summary>
-        /// <param name="player">player who is checking</param>
+        /// <param name="playerId"></param>
         /// <param name="claim">should the player claim their reward</param>
         /// ////////////////////////////////////////////////////////////////////////
         private void HandleRewardCheck(ulong playerId, bool claim)
@@ -369,6 +369,7 @@ namespace Oxide.Plugins
         /// <param name="code">http code</param>
         /// <param name="response">html response</param>
         /// <param name="claim">should the player claim his rewards</param>
+        /// <param name="sitePrefix"></param>
         /// ////////////////////////////////////////////////////////////////////////
         private void PlayerVoteHandlingCallback(ulong playerId, int code, string response, bool claim, string sitePrefix)
         {
@@ -393,7 +394,8 @@ namespace Oxide.Plugins
         /// <summary>
         /// Handle the rewards to give to the player
         /// </summary>
-        /// <param name="player">player to receive rewards</param>
+        /// <param name="playerId"></param>
+        /// <param name="sitePrefix"></param>
         /// ////////////////////////////////////////////////////////////////////////
         private void RewardHandler(ulong playerId, string sitePrefix)
         {

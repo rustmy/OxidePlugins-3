@@ -71,7 +71,8 @@ namespace Oxide.Plugins
         /// <param name="command"></param>
         /// <param name="args"></param>
         [ChatCommand("cleaninv")]
-        void cmdChatCleanInv(BasePlayer player, string command, string[] args)
+        // ReSharper disable once UnusedMember.Local
+        void CleanInventoryChatCommand(BasePlayer player, string command, string[] args)
         {
             if (player == null) return;
             if (HasPermission(player, "inventorycleaner.use") || player.IsAdmin())
@@ -79,23 +80,28 @@ namespace Oxide.Plugins
                 List<Item> collection = new List<Item>();
                 if (_pluginConfig.CleanMain)
                 {
-                    foreach (Item item in player.inventory.containerMain.itemList)
+                    while(player.inventory.containerMain.itemList.Count != 0) 
                     {
-                        player.inventory.containerMain.Take(collection, item.info.itemid, item.amount);
+                        Item itemToTake = player.inventory.containerMain.itemList[0];
+                        player.inventory.containerMain.Take(collection, itemToTake.info.itemid, itemToTake.amount);
                     }
                 }
+
                 if (_pluginConfig.CleanBelt)
                 {
-                    foreach (Item item in player.inventory.containerBelt.itemList)
+                    while (player.inventory.containerBelt.itemList.Count != 0)
                     {
-                        player.inventory.containerBelt.Take(collection, item.info.itemid, item.amount);
+                        Item itemToTake = player.inventory.containerBelt.itemList[0];
+                        player.inventory.containerBelt.Take(collection, itemToTake.info.itemid, itemToTake.amount);
                     }
                 }
+
                 if (_pluginConfig.CleanClothes)
                 {
-                    foreach (Item item in player.inventory.containerWear.itemList)
+                    while (player.inventory.containerWear.itemList.Count != 0)
                     {
-                        player.inventory.containerWear.Take(collection, item.info.itemid, item.amount);
+                        Item itemToTake = player.inventory.containerWear.itemList[0];
+                        player.inventory.containerWear.Take(collection, itemToTake.info.itemid, itemToTake.amount);
                     }
                 }
 
@@ -115,7 +121,7 @@ namespace Oxide.Plugins
         /// <param name="player"></param>
         /// <param name="message"></param>
         /// <param name="args"></param>
-        private void Chat(BasePlayer player, string message, string[] args = null) => PrintToChat(player, $"{_pluginConfig.Prefix} {message}", args);
+        private void Chat(BasePlayer player, string message, params object[] args) => PrintToChat(player, $"{_pluginConfig.Prefix} {message}", args);
 
         //////////////////////////////////////////////////////////////////////////////////////
         /// <summary>
