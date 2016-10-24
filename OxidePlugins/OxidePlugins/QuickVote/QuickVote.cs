@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Newtonsoft.Json;
 using Oxide.Core;
 
 // ReSharper disable once CheckNamespace
@@ -415,7 +416,7 @@ namespace Oxide.Plugins
             //Loop over each vote missed so the user get's all their rewards
             for (int timesVoted = playerData.ClaimedVotes + 1; timesVoted <= playerData.TotalVotes; timesVoted++)
             {
-                string message = $" {sitePrefix}: {Lang("ThankYou", player.UserIDString, timesVoted)}";
+                string message = $" {sitePrefix}: {Lang("ThankYou", player.UserIDString, timesVoted)}\n";
 
                 foreach (KeyValuePair<int, Hash<string, string>> voteReward in _pluginConfig.Reward)
                 {
@@ -459,7 +460,7 @@ namespace Oxide.Plugins
                                 player.Command("note.inv ", itemToReceive.info.itemid, itemToReceive.amount * -1f);
                             }
 
-                            message += $"{Lang("Received", player.UserIDString, reward.Value, itemToReceive.info.displayName.translated)}\n";
+                            message += $" - {Lang("Received", player.UserIDString, reward.Value, itemToReceive.info.displayName.translated)}\n";
                         }
                     }
                 }
@@ -734,7 +735,7 @@ namespace Oxide.Plugins
         /// ////////////////////////////////////////////////////////////////////////
         private class PlayerVoteData
         {
-            public ulong Id { get; }
+            public ulong Id { get; set; }
             public string DisplayName { get; set; }
             public int TotalVotes { get; set; }
             public int ClaimedVotes { get; set; }
@@ -747,6 +748,7 @@ namespace Oxide.Plugins
                 ClaimedVotes = 0;
             }
 
+            [JsonConstructor]
             public PlayerVoteData(ulong id, string displayName)
             {
                 Id = id;

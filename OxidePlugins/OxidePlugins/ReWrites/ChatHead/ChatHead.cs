@@ -33,6 +33,16 @@ namespace Oxide.Plugins
             _storedData = Interface.Oxide.DataFileSystem.ReadObject<StoredData>("Plugin");
 
             permission.RegisterPermission(UsePermission, this);
+            SetupPlayers();
+        }
+
+        private void SetupPlayers()
+        {
+            foreach (BasePlayer player in BasePlayer.activePlayerList)
+            {
+                CheckPlayer(player);
+            }
+            Interface.Oxide.DataFileSystem.WriteObject("ChatHead", _storedData);
         }
 
         ////////////////////////////////////////////////////////////////////////
@@ -89,7 +99,7 @@ namespace Oxide.Plugins
             PlayerSettings settings = _storedData.PlayerSettings[player.userID];
             if (settings == null || !settings.ShowChatAboveHead) return;
             string message = arg.Args[0];
-
+            
             foreach (BasePlayer onlinePlayer in BasePlayer.activePlayerList)
             {
                 DrawChatMessage(player, onlinePlayer, settings, message);
@@ -101,12 +111,11 @@ namespace Oxide.Plugins
             if (Vector3.Distance(player.transform.position, onlinePlayer.transform.position) > settings.DisplayDistance) return;
             Color color =  ColorEx.Parse(_pluginConfig.DisplayColor);
 
-            onlinePlayer.SendConsoleCommand("ddraw.text", 0.099f, color, player.transform.position + new Vector3(0, 1.9f, 0), $"<size={_pluginConfig.MessageFontSize}>{message}</size>");
-
-            _playerDisplayTimer[player.userID]?.Destroy();
+            onlinePlayer.SendConsoleCommand("ddraw.text", 0.1f, color, player.transform.position + new Vector3(0, 1.9f, 0), $"<size={_pluginConfig.MessageFontSize}>{message}</size>");
+            //_playerDisplayTimer[player.userID]?.Destroy();
             _playerDisplayTimer[player.userID] = timer.Repeat(0.1f, _pluginConfig.DisplayLengthInSeconds * 10, () =>
             {
-                onlinePlayer.SendConsoleCommand("ddraw.text", 0.099f, color, player.transform.position + new Vector3(0, 1.9f, 0), $"<size={_pluginConfig.MessageFontSize}>{message}</size>");
+                onlinePlayer.SendConsoleCommand("ddraw.text", 0.1f, color, player.transform.position + new Vector3(0, 1.9f, 0), $"<size={_pluginConfig.MessageFontSize}>{message}</size>");
             });
 
         }
@@ -185,6 +194,7 @@ namespace Oxide.Plugins
         void OnPlayerInit(BasePlayer player)
         {
             CheckPlayer(player);
+            Interface.Oxide.DataFileSystem.WriteObject("ChatHead", _storedData);
         }
         #endregion
 
